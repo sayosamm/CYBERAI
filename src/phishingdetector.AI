@@ -1,0 +1,25 @@
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+public class PhishingDetector {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // Load dataset
+        List<String> emails = Files.readAllLines(Paths.get("datasets/emails.csv"));
+        List<String> labels = Files.readAllLines(Paths.get("datasets/labels.csv"));
+
+        // Load model
+        FileInputStream fileIn = new FileInputStream("models/phishing_model.ser");
+        ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+        NaiveBayesModel model = (NaiveBayesModel) objectIn.readObject();
+        objectIn.close();
+
+        // Test example
+        String testEmail = "Your account has been compromised. Click here to reset your password.";
+        boolean isPhishing = model.predict(testEmail);
+
+        System.out.println("Prediction: " + (isPhishing ? "Phishing" : "Legitimate"));
+    }
+}

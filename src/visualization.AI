@@ -1,0 +1,23 @@
+import javax.swing.*;
+import org.jfree.chart.*;
+import org.jfree.chart.plot.*;
+import org.jfree.data.category.*;
+
+public class Visualization {
+    public static void plotAnomalies(double[] data) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (int i = 0; i < data.length; i++) {
+            dataset.addValue(data[i], "Anomalies", String.valueOf(i));
+        }
+
+        JFreeChart chart = ChartFactory.createLineChart("Anomaly Trends", "Time", "Anomaly Score",
+                dataset, PlotOrientation.VERTICAL, false, true, false);
+
+        ChartPanel panel = new ChartPanel(chart);
+        JFrame frame = new JFrame();
+        frame.setContentPane(panel);
+        frame.pack();
+        frame.setVisible(true);
+    }
+}
+
