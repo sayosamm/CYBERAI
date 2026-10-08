@@ -190,6 +190,7 @@ All endpoints return JSON. Mutations persist to `server/data/store.json`.
 ## More docs
 
 - [`DEPLOY.md`](DEPLOY.md) — deploy to Render free tier; one instance per customer
+- [`docs/EMBED.md`](docs/EMBED.md) — add the AI chat to a client's website with one line (`/widget.js`); preview at `/widget-demo.html`
 - [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — checklist to onboard the first client
 - [`docs/PACKAGES.md`](docs/PACKAGES.md) — packages, estimated delivery costs, assumptions
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — five additional automation ideas, ranked

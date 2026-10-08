@@ -147,6 +147,15 @@ const server = http.createServer(async (req, res) => {
     if (urlPath.startsWith('/api/')) {
       securityHeaders(res);
       res.setHeader('Cache-Control', 'no-store');
+      // CORS for the public endpoints the embeddable chat widget calls from a
+      // client's own website (cross-origin). Management endpoints stay same-origin.
+      if (PUBLIC_API.has(urlPath)) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Access-Control-Max-Age', '86400');
+        if (req.method === 'OPTIONS') { res.writeHead(204).end(); return; }
+      }
       const body = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)
         ? await readBody(req)
         : {};
