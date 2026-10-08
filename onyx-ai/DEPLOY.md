@@ -85,14 +85,42 @@ demo stay open. Leave them unset to rely on the unguessable URL instead.
 
 ---
 
-## Going live with real calls/texts (gated)
+## Lead notifications (no go-live needed — safe to turn on anytime)
 
-Only after a client signs off (see `docs/ONBOARDING.md`):
-1. Add the client's provider credentials as env vars.
-2. Implement the live branch in the relevant `server/integrations/*.js` file
-   (each documents the exact provider call).
-3. Set `ONYX_MODE=live` and `PUBLIC_BASE_URL` to the instance URL.
-4. Test on your own number first.
+So the owner hears about a lead the instant it comes in. Pick any channel(s)
+and set the env var(s) on the Render service — no `ONYX_MODE=live` required:
+
+- **Webhook (easiest):** make a Slack/Discord/Zapier/Make *incoming webhook*
+  URL and set `NOTIFY_WEBHOOK_URL`. Leads post there immediately.
+- **Email:** sign up for Resend (free tier), set `RESEND_API_KEY`,
+  `NOTIFY_EMAIL_TO`, `NOTIFY_FROM_EMAIL` (a verified sender).
+- **SMS to owner:** set `NOTIFY_SMS_TO` (needs the Twilio creds below).
+
+With none set, notifications are simulated (shown in the activity feed).
+
+## Going live: missed-call text-back + two-way SMS (gated)
+
+The logic is fully built — this is **configuration**, after the client signs off
+(see `docs/ONBOARDING.md`):
+
+1. **Twilio account** → buy a number (or port one). Add env vars on the service:
+   `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_PHONE_NUMBER`
+   (or `TWILIO_MESSAGING_SERVICE_SID`). Set `PUBLIC_BASE_URL` to the instance URL.
+2. **Point Twilio at the webhooks** (Console → your number):
+   - Voice · *A call comes in* → `POST {PUBLIC_BASE_URL}/api/webhooks/twilio/voice`
+   - Messaging · *A message comes in* → `POST {PUBLIC_BASE_URL}/api/webhooks/twilio/sms`
+   - (optional status) → `POST {PUBLIC_BASE_URL}/api/webhooks/twilio/status`
+   Requests are verified via the `X-Twilio-Signature` header automatically.
+3. **Call forwarding:** on the client's existing business line, set
+   *forward on no-answer/busy* to the Twilio number — that's what triggers the
+   text-back on a missed call.
+4. **A2P 10DLC:** register the brand + campaign in Twilio for US business
+   texting. **Start this early — it can take days to ~2 weeks.**
+5. Set **`ONYX_MODE=live`** (the explicit opt-in that lets real texts send).
+6. **Test on your own phone first**, then the owner's, before any customer.
+
+Reminders, review requests, and reactivation also send through the same Twilio
+path once live.
 
 ---
 

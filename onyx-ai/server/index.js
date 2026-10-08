@@ -117,6 +117,8 @@ const PUBLIC_API = new Set([
 function needsAuth(urlPath) {
   if (!process.env.DASHBOARD_USER || !process.env.DASHBOARD_PASS) return false;
   if (urlPath === '/dashboard' || urlPath.startsWith('/dashboard')) return true;
+  // Provider webhooks (Twilio, etc.) can't send Basic Auth — always public.
+  if (urlPath.startsWith('/api/webhooks/')) return false;
   if (urlPath.startsWith('/api/')) return !PUBLIC_API.has(urlPath);
   return false;
 }
