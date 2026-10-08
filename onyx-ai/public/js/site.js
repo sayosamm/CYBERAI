@@ -197,6 +197,8 @@
       await wait(400); t.remove();
       bubble(chat, 'bot', data.reply);
       recState = data.state;
+      const note = $('#demoNote');
+      if (note && data.smart) note.textContent = 'Powered by Claude — ask it anything. Grounded in this business’s services, hours & policies. No calls or texts are sent.';
     } catch { t.remove(); bubble(chat, 'bot', 'Hi! Try asking about hours, pricing, or booking a visit.'); }
   }
   $('#chatForm').addEventListener('submit', (e) => {

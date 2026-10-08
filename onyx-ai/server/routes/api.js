@@ -14,6 +14,7 @@ const sms = require('../integrations/sms');
 const telephony = require('../integrations/telephony');
 const calendar = require('../integrations/calendar');
 const notify = require('../integrations/notify');
+const ai = require('../integrations/ai');
 const twilioLib = require('../lib/twilio');
 const { id, normalizePhone, isValidEmail, clampStr } = require('../lib/util');
 
@@ -307,13 +308,34 @@ async function handle(req, res, ctx) {
           },
         };
       }
+      const smart = ai.enabled();
+
+      // Greeting (first turn): return the AI disclosure, seed state.
       if (!state && !text) {
+        const greeting = assistant.greeting(business);
         return send(res, 200, {
-          reply: assistant.greeting(business),
-          state: { step: 'open', lead: {}, booked: false },
+          reply: greeting,
+          state: smart ? { mode: 'ai', history: [{ role: 'assistant', content: greeting }] } : { step: 'open', lead: {}, booked: false },
           disclosure: true,
+          smart,
         });
       }
+
+      // Smart mode: Claude-powered, grounded in the business config.
+      if (smart && (!state || state.mode === 'ai')) {
+        const history = (state && state.history) || [];
+        const out = await ai.chat(business, history, text);
+        if (out.ok) {
+          const newHistory = [...history, { role: 'user', content: text }, { role: 'assistant', content: out.reply }].slice(-16);
+          return send(res, 200, { reply: out.reply, state: { mode: 'ai', history: newHistory }, source: 'ai', simulated: true });
+        }
+        // Fall back to the rule engine for this reply, keep the AI conversation going.
+        const rule = assistant.reply(business, null, text);
+        const newHistory = [...history, { role: 'user', content: text }, { role: 'assistant', content: rule.reply }].slice(-16);
+        return send(res, 200, { reply: rule.reply, state: { mode: 'ai', history: newHistory }, source: 'rule_fallback', simulated: true });
+      }
+
+      // Rule-based mode (no API key configured).
       const result = assistant.reply(business, state, text);
       return send(res, 200, { ...result, simulated: true });
     }
@@ -412,16 +434,27 @@ async function handle(req, res, ctx) {
         if (kind === 'help') {
           return sendXml(res, twilioLib.twiml(`<Message>${twilioLib.escapeXml(business.name)}: msg & data rates may apply. Reply STOP to opt out.</Message>`));
         }
-        // Multi-turn: keep per-caller assistant state so booking works over SMS.
+        // Multi-turn: keep per-caller conversation so booking works over SMS.
+        // Uses the Claude-powered assistant when configured, else the rule engine.
         db.convos = db.convos || {};
-        const result = assistant.reply(business, db.convos[from] || null, inbound);
-        db.convos[from] = result.state;
+        let replyText;
+        if (ai.enabled()) {
+          const conv = db.convos[from] && db.convos[from].mode === 'ai' ? db.convos[from] : { mode: 'ai', history: [] };
+          const out = await ai.chat(business, conv.history, inbound);
+          replyText = out.ok ? out.reply : assistant.reply(business, null, inbound).reply;
+          conv.history = [...conv.history, { role: 'user', content: inbound }, { role: 'assistant', content: replyText }].slice(-16);
+          db.convos[from] = conv;
+        } else {
+          const result = assistant.reply(business, db.convos[from] || null, inbound);
+          db.convos[from] = result.state;
+          replyText = result.reply;
+        }
         // Capture a lead on first contact from this number (deduped to 24h).
         const recentLead = db.leads.find((l) => l.phone === from && Date.now() - new Date(l.createdAt) < 24 * 3600 * 1000);
         if (from && !recentLead) {
           const lead = {
             id: id('lead'), name: `Text lead ${from}`, phone: from, email: '',
-            source: 'missed_call_text', service: (result.state && result.state.lead && result.state.lead.service) || 'Inbound text',
+            source: 'missed_call_text', service: 'Inbound text',
             status: 'new', value: 'medium', note: inbound, smsConsent: true,
             createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), sample: false,
           };
@@ -433,7 +466,7 @@ async function handle(req, res, ctx) {
         } else {
           store.persist();
         }
-        return sendXml(res, twilioLib.twiml(`<Message>${twilioLib.escapeXml(result.reply)}</Message>`));
+        return sendXml(res, twilioLib.twiml(`<Message>${twilioLib.escapeXml(replyText)}</Message>`));
       }
 
       // (c) Delivery status callback.
