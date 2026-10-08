@@ -124,16 +124,19 @@
   ];
   const pg = $('#priceGrid');
   if (plans.length === 1) pg.classList.add('single');
+  const reassurances = ['Month-to-month — cancel anytime', 'Nothing goes live until you approve', 'Setup billed once, then just $299/mo'];
   plans.forEach((p) => {
     const c = el('div', 'plan reveal' + (p.pop ? ' featured' : ''));
     c.innerHTML =
       (p.pop ? '<span class="pop">Everything included</span>' : '') +
       `<h3>${p.name}</h3><div class="plan-for">${esc(p.for)}</div>` +
       `<div class="price">${p.price}<small>/mo</small></div>` +
+      `<div class="price-anchor">A 24/7 AI front office — for less than a part-time receptionist.</div>` +
       `<div class="setup">${esc(p.setup)}</div>` +
       '<ul>' + p.feats.map((f) => `<li>${esc(f)}</li>`).join('') +
       p.limits.map((l) => `<li class="limit">${esc(l)}</li>`).join('') + '</ul>' +
-      `<a class="btn btn-primary btn-block" href="#contact">Book a demo</a>`;
+      `<a class="btn btn-primary btn-block" href="#contact">Book a demo</a>` +
+      '<ul class="plan-reassure">' + reassurances.map((r) => `<li>${esc(r)}</li>`).join('') + '</ul>';
     pg.appendChild(c); io.observe(c);
   });
 

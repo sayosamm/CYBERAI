@@ -132,7 +132,11 @@
 .plan .plan-for { color: var(--text-faint); font-size: 0.86rem; margin-bottom: 18px; }
 .plan .price { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; }
 .plan .price small { font-size: 0.9rem; font-weight: 500; color: var(--text-faint); }
+.plan .price-anchor { font-size: 0.92rem; color: var(--accent-2); font-weight: 600; margin: 2px 0 10px; }
 .plan .setup { font-size: 0.85rem; color: var(--text-dim); margin: 6px 0 2px; }
+.plan .plan-reassure { list-style: none; padding: 16px 0 0; margin: 16px 0 0; border-top: 1px solid var(--line-soft); display: grid; gap: 8px; grid-template-columns: 1fr !important; }
+.plan .plan-reassure li { display: flex; gap: 9px; font-size: 0.84rem; color: var(--text-faint); align-items: flex-start; }
+.plan .plan-reassure li::before { content: "✓"; color: var(--accent-2); font-weight: 700; flex: none; }
 .plan ul { list-style: none; padding: 0; margin: 20px 0 24px; display: grid; gap: 11px; }
 .plan ul li { display: flex; gap: 9px; font-size: 0.9rem; color: var(--text-dim); align-items: flex-start; }
 .plan ul li::before { content: "✓"; color: var(--accent-2); font-weight: 700; flex: none; }
