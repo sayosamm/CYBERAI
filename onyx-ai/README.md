@@ -5,6 +5,12 @@ appointments. Onyx AI answers the phone, texts back missed callers, books
 appointments, requests honest reviews, and automates the repetitive front-office
 work for HVAC, plumbing, electrical, cleaning, and auto-detailing businesses.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sayosamm/CYBERAI/tree/claude/million-dollars-9pfewu)
+
+One click deploys a free instance on Render (reads `render.yaml`, launches in
+safe simulation mode). Full guide: [`DEPLOY.md`](DEPLOY.md). Once this branch is
+merged into `main`, point the button at the repo root instead of the branch.
+
 This repository contains a **polished marketing website** and a **working demo
 dashboard** you can show to a potential client today. Everything runs locally
 with **no build step, no database, and no third-party credentials**.
