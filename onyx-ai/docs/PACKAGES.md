@@ -1,75 +1,75 @@
-# Packages, delivery costs & assumptions
+# Pricing, delivery costs & assumptions
 
-> **All figures are draft planning estimates for internal use and client
-> discussion — not quotes or guarantees.** Validate provider pricing against
-> current rate cards before committing; third-party rates change.
+> Internal planning doc. Validate provider pricing against current rate cards
+> before committing; third-party rates change.
 
-## Proposed monthly packages
+## The plan (one, all-inclusive)
 
-| | **Starter** | **Growth** (most popular) | **Pro** |
-|---|---|---|---|
-| Best for | Solo operators / small shops | Busy home-service teams | Multi-crew / multi-location |
-| **Draft price / mo** | **$299** | **$699** | **$1,299** |
-| **Setup (one-time)** | $499 | $900 | from $1,500 |
-| Missed-call text-back | ✓ | ✓ | ✓ |
-| Website AI concierge | ✓ | ✓ | ✓ |
-| Review requests (+1 follow-up) | ✓ | ✓ | ✓ |
-| Lead capture + dashboard | ✓ | ✓ | ✓ |
-| AI voice receptionist (inbound) | — | ✓ | ✓ |
-| Appointment booking + reminders | — | ✓ | ✓ |
-| Estimate follow-up | — | ✓ | ✓ |
-| After-hours urgent routing | — | ✓ | ✓ |
-| Daily owner summary | — | ✓ | ✓ |
-| Lead reactivation | — | — | ✓ |
-| Cancellation waitlist fill | — | — | ✓ |
-| Multilingual intake | — | — | ✓ |
-| CRM two-way sync | — | — | ✓ |
-| Priority support & tuning | — | — | ✓ |
-| **Included usage / mo** | 500 conversations | 1,500 conv + 1,000 voice min | 4,000 conv + 3,000 voice min |
-| **Overage** | $0.25 / conv | $0.18 / conv, $0.12 / min | $0.14 / conv, $0.10 / min |
+| | **Full Package** |
+|---|---|
+| **Price** | **$299 / month** |
+| **One-time setup & onboarding** | **$4,000** |
+| AI receptionist / voice agent (inbound calls) | ✓ |
+| Missed-call text-back | ✓ |
+| Appointment booking, reminders & rescheduling | ✓ |
+| Google review requests (+ follow-up) | ✓ |
+| Estimate follow-up | ✓ |
+| Lead reactivation | ✓ |
+| Website AI concierge | ✓ |
+| After-hours urgent routing + human handoff | ✓ |
+| Daily owner summary | ✓ |
+| Lead capture + dashboard | ✓ |
+| AI disclosure + STOP/opt-out | ✓ |
+| **Included usage** | Generous fair-use conversation + voice-minute allotment |
+| **Overage** | At cost + small margin, quoted up front |
+| **Third-party fees** | Phone number, SMS carrier, voice minutes passed through at provider cost |
 
-"Conversation" = one inbound/outbound thread handled by Onyx (a text-back
-exchange, a concierge chat, a reminder sequence). Third-party carrier/voice
-fees are **passed through at provider cost** on top of the plan.
+Month-to-month, cancel anytime. No tiers, no per-feature upsells.
 
-## Estimated delivery cost (per client, per month)
+## Margin check (per client, per month)
 
-These are *our* costs to run a client, used to sanity-check margin. Ranges
-reflect volume and provider tier. **Verify against current provider pricing.**
+Rough *our* cost to run one client, to sanity-check the $299/mo. **Verify
+against current provider pricing.**
 
-| Cost line | Starter | Growth | Pro | Assumption |
-|---|---|---|---|---|
-| Phone number(s) | ~$1–2 | ~$2–5 | ~$5–15 | Local DIDs |
-| SMS (carrier) | ~$5–20 | ~$20–60 | ~$60–150 | Per-segment + carrier fees; A2P 10DLC registered |
-| Voice minutes | — | ~$15–60 | ~$45–180 | Inbound + transfer legs |
-| Realtime voice AI | — | ~$40–120 | ~$120–350 | Per-minute speech agent; Growth/Pro only |
-| LLM / NLU (optional) | ~$2–10 | ~$10–40 | ~$30–120 | Only if upgraded beyond the rule engine |
-| Hosting / infra | ~$5–15 | ~$10–25 | ~$20–50 | Small always-on server + logs |
-| **Est. delivery subtotal** | **~$15–60** | **~$100–310** | **~$280–865** | Varies with volume |
-| **Draft price** | $299 | $699 | $1,299 | |
-| **Indicative gross margin** | high | healthy | healthy-to-tight at peak volume | Overages protect margin above included usage |
+| Cost line | Est. / mo | Assumption |
+|---|---|---|
+| Phone number | ~$1–5 | Local number |
+| SMS (carrier) | ~$10–50 | Per-segment + carrier fees; A2P 10DLC registered |
+| Voice minutes | ~$15–80 | Inbound + transfer legs, typical small-business volume |
+| Realtime voice AI | ~$30–120 | Per-minute speech agent |
+| LLM / NLU (optional) | ~$0–40 | Rule engine is near-zero; only if upgraded |
+| Hosting / infra | ~$7 | One Render instance (free–starter) |
+| **Est. delivery subtotal** | **~$65–300** | Scales with call/text volume |
+| **Price** | **$299 / mo** | Plus the $4,000 setup up front |
 
-### One-time setup cost (our effort)
+At typical volume this leaves healthy margin; heavy months (e.g. an HVAC heat
+wave) compress it, which is what the overage + pass-through terms protect.
+**The $4,000 setup is the real profit lever early** — it covers onboarding
+effort and front-loads cash while the monthly recurring builds.
+
+### What the $4,000 setup covers (our effort)
 - Discovery + Settings configuration: 2–4 hrs
-- Provider wiring (numbers, messaging registration, calendar/CRM): 3–8 hrs
-- Flow scripting + simulation testing with owner: 3–6 hrs
+- Provider wiring (number, messaging registration, calendar/CRM): 3–8 hrs
+- Flow scripting + simulation testing with the owner: 3–6 hrs
 - A2P 10DLC brand/campaign registration: lead time of days–weeks (start early)
-
-Setup fees are sized to cover this effort; Pro's "from $1,500" reflects CRM
-sync and multi-location complexity.
+- First-week monitoring and tuning
 
 ## Key assumptions
 1. **US home-service businesses** initially; SMS requires A2P 10DLC registration.
-2. Pricing excludes taxes and pass-through carrier/voice fees.
-3. Included-usage tiers assume typical small-business volume; heavy seasons
-   (e.g. an HVAC heat wave) push usage into overage — that's expected and
-   margin-protective.
+2. Price excludes taxes and pass-through carrier/voice fees.
+3. Fair-use allotment assumes typical small-business volume; heavy seasons push
+   into overage — expected and margin-protective.
 4. The rule-based assistant covers most flows at near-zero marginal NLU cost;
    the LLM upgrade is optional and billed accordingly.
 5. No revenue or performance guarantees are made to clients. We sell captured
    leads and saved admin time, demonstrated in simulation, not promised ROI.
-6. Month-to-month in the draft terms (no long lock-in), which favors proving
-   value fast in the first 2–4 weeks.
+6. Month-to-month (no long lock-in), which favors proving value fast in the
+   first 2–4 weeks.
+
+> **Pricing note:** $4,000 setup is a premium anchor — great margin and it
+> filters for serious clients. For your very first 1–2 reference customers you
+> may choose to discount the setup (e.g. $1,000–1,500) in exchange for a
+> testimonial and a case study, then hold firm at $4,000 once you have proof.
 
 ## Positioning note
 Lead with plain-English outcomes: *"answer every call, text back every missed
