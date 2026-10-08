@@ -8,6 +8,37 @@
 
   $('#year').textContent = new Date().getFullYear();
 
+  /* ---- Per-prospect personalization (from ?biz= &trade= &city=) ---- */
+  const params = new URLSearchParams(location.search);
+  const PERSON = {
+    biz: (params.get('biz') || '').slice(0, 80).trim(),
+    trade: (params.get('trade') || '').slice(0, 40).trim().toLowerCase(),
+    city: (params.get('city') || '').slice(0, 60).trim(),
+  };
+  // Map a free-text trade to one of the industry cards.
+  function tradeKey(t) {
+    if (/plumb/.test(t)) return 'Plumbing';
+    if (/hvac|heat|cool|air|furnace|ac\b/.test(t)) return 'HVAC';
+    if (/electric/.test(t)) return 'Electrical';
+    if (/clean|maid|janitor/.test(t)) return 'Cleaning';
+    if (/detail|auto|car/.test(t)) return 'Auto detailing';
+    if (t) return 'Other trades';
+    return '';
+  }
+  const PERSON_TRADE = tradeKey(PERSON.trade);
+
+  if (PERSON.biz) {
+    // "Prepared for ___" ribbon at the very top.
+    const ribbon = el('div', 'prospect-ribbon',
+      `<span>✦ Prepared for <strong>${esc(PERSON.biz)}</strong>${PERSON.city ? ' · ' + esc(PERSON.city) : ''}</span>`);
+    document.body.insertBefore(ribbon, document.body.firstChild);
+    document.body.classList.add('has-ribbon');
+    // Personalize the hero eyebrow + tab title.
+    const eyebrow = $('.hero .eyebrow');
+    if (eyebrow) eyebrow.textContent = `AI automation for ${PERSON.biz}`;
+    document.title = `${PERSON.biz} × Onyx AI — never miss a call`;
+  }
+
   /* ---- Nav ---- */
   const nav = $('#nav');
   const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 10);
@@ -63,8 +94,9 @@
   ];
   const ig = $('#indGrid');
   industries.forEach(([emoji, name, desc, ex]) => {
-    const c = el('div', 'ind reveal');
-    c.innerHTML = `<div class="ind-emoji">${emoji}</div><h3>${esc(name)}</h3><p>${esc(desc)}</p><div class="ind-ex">${esc(ex)}</div>`;
+    const highlight = PERSON_TRADE && name === PERSON_TRADE;
+    const c = el('div', 'ind reveal' + (highlight ? ' ind-match' : ''));
+    c.innerHTML = `${highlight ? '<span class="ind-badge">Your trade</span>' : ''}<div class="ind-emoji">${emoji}</div><h3>${esc(name)}</h3><p>${esc(desc)}</p><div class="ind-ex">${esc(ex)}</div>`;
     ig.appendChild(c); io.observe(c);
   });
 
@@ -131,7 +163,7 @@
     try {
       const res = await fetch('/api/demo/receptionist', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, state: recState }),
+        body: JSON.stringify({ message: text, state: recState, biz: PERSON.biz || undefined }),
       });
       const data = await res.json();
       await wait(450);
@@ -146,7 +178,7 @@
   async function recGreet() {
     const t = typing(chat);
     try {
-      const res = await fetch('/api/demo/receptionist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const res = await fetch('/api/demo/receptionist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(PERSON.biz ? { biz: PERSON.biz } : {}) });
       const data = await res.json();
       await wait(400); t.remove();
       bubble(chat, 'bot', data.reply);
@@ -168,15 +200,28 @@
   }, { threshold: 0.4 });
   demoIO.observe($('#demo'));
 
-  /* ---- Missed-call text-back animation ---- */
+  /* ---- Missed-call text-back animation (trade-aware + personalized) ---- */
   const smsChat = $('#smsChat');
+  const SCENARIOS = {
+    'HVAC': ['My AC stopped cooling this afternoon', 'get a technician out for a diagnostic', 'an AC diagnostic'],
+    'Plumbing': ['My water heater is leaking', 'get a plumber out to take a look', 'a plumbing visit'],
+    'Electrical': ['Half my outlets just stopped working', 'send an electrician to diagnose it', 'an electrical diagnostic'],
+    'Cleaning': ['I need a move-out clean this week', 'get you on the schedule for a clean', 'a cleaning'],
+    'Auto detailing': ['I’d like to book a full detail', 'get your vehicle booked in', 'a full detail'],
+    'Other trades': ['I need someone to come take a look', 'get a team member out to help', 'a visit'],
+  };
+  const sc = SCENARIOS[PERSON_TRADE] || SCENARIOS['HVAC'];
+  const smsBiz = PERSON.biz || 'Northside Heating & Air';
   const smsScript = [
-    ['bot', 'Hi, this is Northside Heating & Air’s assistant — sorry we missed your call! This is an automated text. How can we help? (Reply STOP to opt out.)'],
-    ['user', 'My AC stopped cooling this afternoon'],
-    ['bot', 'Sorry to hear that! I can get a technician out for a diagnostic. Are you available tomorrow morning or afternoon?'],
+    ['bot', `Hi, this is ${smsBiz}’s assistant — sorry we missed your call! This is an automated text. How can we help? (Reply STOP to opt out.)`],
+    ['user', sc[0]],
+    ['bot', `Sorry to hear that! I can ${sc[1]}. Are you available tomorrow morning or afternoon?`],
     ['user', 'Tomorrow afternoon works'],
-    ['bot', 'Great — I’ve noted tomorrow afternoon for an AC diagnostic and shared your details with the team. You’ll get a confirmation text shortly. 👍'],
+    ['bot', `Great — I’ve noted tomorrow afternoon for ${sc[2]} and shared your details with the team. You’ll get a confirmation text shortly. 👍`],
   ];
+  // Personalize the SMS phone header.
+  const smsHeader = $('.phone.sms .phone-top strong');
+  if (PERSON.biz && smsHeader) smsHeader.textContent = `Text from ${PERSON.biz}`;
   let smsPlaying = false;
   async function playSms() {
     if (smsPlaying) return; smsPlaying = true;

@@ -271,14 +271,27 @@ async function handle(req, res, ctx) {
     if (resource === 'demo' && idParam === 'receptionist' && method === 'POST') {
       const state = body.state || null;
       const text = clampStr(body.message, 500);
+      // Optional per-prospect personalization: override the business name only.
+      const bizOverride = clampStr(body.biz, 80).trim();
+      let business = db.business;
+      if (bizOverride) {
+        business = {
+          ...db.business,
+          name: bizOverride,
+          compliance: {
+            ...db.business.compliance,
+            aiDisclosure: `Hi! You're chatting with ${bizOverride}'s AI assistant. I can answer questions and help you book — I'll connect you to a person anytime you ask.`,
+          },
+        };
+      }
       if (!state && !text) {
         return send(res, 200, {
-          reply: assistant.greeting(db.business),
+          reply: assistant.greeting(business),
           state: { step: 'open', lead: {}, booked: false },
           disclosure: true,
         });
       }
-      const result = assistant.reply(db.business, state, text);
+      const result = assistant.reply(business, state, text);
       return send(res, 200, { ...result, simulated: true });
     }
 

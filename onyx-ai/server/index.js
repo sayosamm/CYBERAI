@@ -41,6 +41,7 @@ function sendStatic(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') urlPath = '/index.html';
   if (urlPath === '/dashboard') urlPath = '/dashboard.html';
+  if (urlPath === '/share') urlPath = '/share.html';
 
   // Prevent path traversal.
   const safePath = path.normalize(path.join(PUBLIC_DIR, urlPath));

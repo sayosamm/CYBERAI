@@ -49,6 +49,19 @@ To reset the demo from the UI, click **Reset demo** in the dashboard top bar.
 
 ---
 
+## Personalized demos (sales)
+
+Make the demo feel built for a specific prospect:
+
+- Add `?biz=` (and optional `&trade=` / `&city=`) to the site URL. Example:
+  `/?biz=Acme%20Plumbing&trade=plumbing&city=Austin,%20TX` — the site shows a
+  "Prepared for Acme Plumbing" ribbon, personalizes the hero and the AI
+  receptionist's greeting, and highlights the prospect's trade.
+- Or open **`/share`** (the **Demo Builder**, internal/noindex): type the
+  business name + trade and it generates the shareable link plus a
+  ready-to-send outreach message (text or email). Supported trades: HVAC,
+  plumbing, electrical, cleaning, auto detailing, other.
+
 ## What works now vs. what needs provider credentials
 
 ### ✅ Works now (no credentials, fully functional)
