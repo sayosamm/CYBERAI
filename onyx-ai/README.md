@@ -69,7 +69,7 @@ Make the demo feel built for a specific prospect:
 | Capability | Where | Notes |
 |---|---|---|
 | Marketing website | `/` | Responsive, animated, mobile-friendly |
-| Interactive AI receptionist demo | hero on `/` | Rule-based engine over the business's FAQs/services |
+| Interactive AI receptionist demo | hero on `/` | Rule-based by default; **smart mode** (Claude) when `ANTHROPIC_API_KEY` is set — answers almost anything, grounded in the business config |
 | Missed-call text-back visual | `/#textback` | Animated conversation replay |
 | Lead capture (contact / book-a-demo) | `/#contact` → dashboard | Real validation + consent checkbox |
 | Demo dashboard | `/dashboard` | Overview, Calls, Leads, Appointments, Reviews, Automations, Settings |
