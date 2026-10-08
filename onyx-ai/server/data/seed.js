@@ -298,6 +298,8 @@ function buildSeed() {
     // idempotency keys live here so opt-outs and de-duplication survive restarts.
     consent: {},
     sentKeys: {},
+    // Per-caller SMS assistant state (keyed by phone) for multi-turn text-back.
+    convos: {},
   };
 }
 

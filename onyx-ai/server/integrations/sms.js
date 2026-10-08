@@ -24,6 +24,7 @@
 const { mode } = require('../lib/env');
 const consent = require('../lib/consent');
 const { clampStr } = require('../lib/util');
+const twilio = require('../lib/twilio');
 
 /**
  * Send an automated SMS through the compliance gate.
@@ -52,9 +53,15 @@ async function sendSms(store, business, opts) {
   const finalBody = body.includes('STOP') ? body : `${body}\n\n${footer}`;
 
   if (mode() === 'live') {
-    // LIVE path intentionally not wired. Requires credentials + explicit
-    // approval to send real messages. See the header for the Twilio call.
-    throw new Error('LIVE SMS not enabled: wire Twilio in sendSms() and obtain approval before sending real messages.');
+    // LIVE path: send through Twilio. Requires credentials AND approval to
+    // message real customers (ONYX_MODE=live is the explicit opt-in).
+    const statusCallback = process.env.PUBLIC_BASE_URL
+      ? `${process.env.PUBLIC_BASE_URL.replace(/\/$/, '')}/api/webhooks/twilio/status`
+      : undefined;
+    const result = await twilio.sendMessage({ to: phone, body: finalBody, statusCallback });
+    if (!result.ok) return { ok: false, status: 'error', reason: result.error, simulated: false };
+    consent.markDone(store, kind, dedupeKey);
+    return { ok: true, status: 'sent', simulated: false, sid: result.sid, body: finalBody };
   }
 
   // 4) Simulation: record and mark done.

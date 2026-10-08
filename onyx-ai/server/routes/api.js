@@ -13,11 +13,33 @@ const assistant = require('../lib/assistant');
 const sms = require('../integrations/sms');
 const telephony = require('../integrations/telephony');
 const calendar = require('../integrations/calendar');
+const notify = require('../integrations/notify');
+const twilioLib = require('../lib/twilio');
 const { id, normalizePhone, isValidEmail, clampStr } = require('../lib/util');
 
 function send(res, code, obj) {
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(obj));
+}
+
+function sendXml(res, xml) {
+  res.writeHead(200, { 'Content-Type': 'text/xml; charset=utf-8' });
+  res.end(xml);
+}
+
+/** Notify the owner of a new lead and record the outcome in the activity feed. */
+async function announceLead(db, lead) {
+  try {
+    const out = await notify.notifyNewLead(db.business, lead);
+    if (out.simulated) {
+      logActivity(db, 'lead', `Owner notification queued for ${lead.name} (no channel configured — simulated).`);
+    } else if (out.sent.length) {
+      logActivity(db, 'lead', `Owner notified of new lead ${lead.name} via ${out.sent.join(', ')}.`);
+    } else {
+      logActivity(db, 'lead', `Owner notification attempted for ${lead.name} but all channels failed.`);
+    }
+    store.persist();
+  } catch { /* never block lead capture on notification */ }
 }
 
 function logActivity(db, type, text) {
@@ -102,6 +124,7 @@ async function handle(req, res, ctx) {
         if (lead.smsConsent) consent.setConsent(db, lead.phone, 'opted_in', 'form opt-in');
         logActivity(db, 'lead', `New lead captured: ${lead.name} (${lead.service}).`);
         store.persist();
+        await announceLead(db, lead);
         return send(res, 201, { lead });
       }
       if (method === 'PATCH' && idParam) {
@@ -342,6 +365,86 @@ async function handle(req, res, ctx) {
       return send(res, 200, { action: 'message', consent: consent.getConsent(db, phone) });
     }
 
+    // ---- Twilio webhooks (live missed-call text-back + two-way SMS) ----
+    // Configure these URLs in the Twilio console:
+    //   Voice "A call comes in"  -> POST {PUBLIC_BASE_URL}/api/webhooks/twilio/voice
+    //   Messaging "A message..."  -> POST {PUBLIC_BASE_URL}/api/webhooks/twilio/sms
+    //   (status callbacks)        -> POST {PUBLIC_BASE_URL}/api/webhooks/twilio/status
+    if (resource === 'webhooks' && idParam === 'twilio' && method === 'POST') {
+      // Verify the request really came from Twilio (enforced in live mode).
+      const token = process.env.TWILIO_AUTH_TOKEN;
+      if (mode() === 'live' && token) {
+        const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+        const ok = twilioLib.validateSignature(token, base + url.pathname, body, req.headers['x-twilio-signature']);
+        if (!ok) { res.writeHead(403, { 'Content-Type': 'text/plain' }); res.end('invalid signature'); return; }
+      }
+      const business = db.business;
+
+      // (a) Missed / forwarded inbound call -> fire the text-back to the caller.
+      if (action === 'voice') {
+        const caller = normalizePhone(body.From);
+        if (caller) {
+          const first = `Hi, this is ${business.name}'s assistant — sorry we missed your call! This is an automated text. How can we help?`;
+          const r = await sms.sendSms(db, business, {
+            phone: caller, body: first, kind: 'missedcall', naturalKey: `missedcall:${caller}`, requireConsent: false,
+          });
+          if (r.ok) logActivity(db, 'messaging', `Missed-call text-back ${r.simulated ? '(simulated) ' : ''}sent to ${caller}.`);
+          store.persist();
+        }
+        return sendXml(res, twilioLib.twiml(
+          `<Say voice="alice">Thanks for calling ${twilioLib.escapeXml(business.name)}. We just texted you so we can help right away — please reply to that message.</Say>`
+        ));
+      }
+
+      // (b) Inbound SMS -> consent keywords, else assistant reply + lead capture.
+      if (action === 'sms') {
+        const from = normalizePhone(body.From);
+        const inbound = clampStr(body.Body, 500);
+        const kind = consent.classifyInbound(inbound);
+        if (kind === 'stop') {
+          consent.setConsent(db, from, 'opted_out', 'inbound STOP'); store.persist();
+          return sendXml(res, twilioLib.twiml(`<Message>You're unsubscribed and won't get more automated texts. Reply START to resubscribe.</Message>`));
+        }
+        if (kind === 'start') {
+          consent.setConsent(db, from, 'opted_in', 'inbound START'); store.persist();
+          return sendXml(res, twilioLib.twiml(`<Message>You're resubscribed to text updates. Reply STOP to opt out anytime.</Message>`));
+        }
+        if (kind === 'help') {
+          return sendXml(res, twilioLib.twiml(`<Message>${twilioLib.escapeXml(business.name)}: msg & data rates may apply. Reply STOP to opt out.</Message>`));
+        }
+        // Multi-turn: keep per-caller assistant state so booking works over SMS.
+        db.convos = db.convos || {};
+        const result = assistant.reply(business, db.convos[from] || null, inbound);
+        db.convos[from] = result.state;
+        // Capture a lead on first contact from this number (deduped to 24h).
+        const recentLead = db.leads.find((l) => l.phone === from && Date.now() - new Date(l.createdAt) < 24 * 3600 * 1000);
+        if (from && !recentLead) {
+          const lead = {
+            id: id('lead'), name: `Text lead ${from}`, phone: from, email: '',
+            source: 'missed_call_text', service: (result.state && result.state.lead && result.state.lead.service) || 'Inbound text',
+            status: 'new', value: 'medium', note: inbound, smsConsent: true,
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), sample: false,
+          };
+          db.leads.unshift(lead);
+          consent.setConsent(db, from, 'opted_in', 'replied to text-back');
+          logActivity(db, 'lead', `Lead from text-back conversation: ${from}.`);
+          store.persist();
+          await announceLead(db, lead);
+        } else {
+          store.persist();
+        }
+        return sendXml(res, twilioLib.twiml(`<Message>${twilioLib.escapeXml(result.reply)}</Message>`));
+      }
+
+      // (c) Delivery status callback.
+      if (action === 'status') {
+        logActivity(db, 'messaging', `SMS ${clampStr(body.MessageStatus, 20)} (${clampStr(body.MessageSid, 14)}).`);
+        store.persist();
+        res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end('ok'); return;
+      }
+      return send(res, 404, { error: 'unknown_webhook' });
+    }
+
     // ---- contact / book a demo ----
     if (resource === 'contact' && method === 'POST') {
       const name = clampStr(body.name, 80).trim();
@@ -370,7 +473,8 @@ async function handle(req, res, ctx) {
       db.leads.unshift(lead);
       logActivity(db, 'lead', `Website contact: ${name} — ${lead.service}.`);
       store.persist();
-      // NOTE: no real email/text is sent; the dashboard shows the captured lead.
+      // Notify the owner (email/webhook/SMS if configured; simulated otherwise).
+      await announceLead(db, lead);
       return send(res, 201, { ok: true, leadId: lead.id, simulated: true });
     }
 

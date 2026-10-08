@@ -79,14 +79,17 @@ Make the demo feel built for a specific prospect:
 | Toggle automations on/off | Automations view | Activity feed updates |
 | Edit business hours, services, FAQs, escalation | Settings view | The receptionist demo immediately uses them |
 | Consent / opt-out engine | server-wide | `STOP`/`START`/`HELP`, quiet hours, dedupe |
+| Lead notifications | owner alerts | Webhook/email/SMS when configured; simulated otherwise |
+| Missed-call text-back + two-way SMS | server-wide | Full logic + Twilio webhooks built; add creds to go live |
 
-### 🔌 Needs provider credentials (boundaries are built; live calls are stubbed)
+### 🔌 Needs provider credentials (logic built; add credentials to go live)
 
 | Capability | Provider (suggested) | Credential(s) | Status |
 |---|---|---|---|
-| Inbound calls + warm transfer | Twilio Programmable Voice | `TWILIO_*`, `ESCALATION_PHONE_NUMBER` | Boundary in `server/integrations/telephony.js` |
+| **Lead notifications** | Slack/Discord/Zapier webhook, Resend email, or Twilio SMS | `NOTIFY_WEBHOOK_URL` / `RESEND_API_KEY`+`NOTIFY_EMAIL_TO`+`NOTIFY_FROM_EMAIL` / `NOTIFY_SMS_TO` | **Implemented** — `server/integrations/notify.js` |
+| **Missed-call text-back + two-way SMS** | Twilio Voice + Messaging | `TWILIO_*`, `PUBLIC_BASE_URL`, `ONYX_MODE=live` | **Implemented** — real Twilio send + webhooks in `server/lib/twilio.js`, `server/routes/api.js` |
 | Realtime AI voice agent | Realtime speech provider | `VOICE_AI_API_KEY`, `VOICE_AI_AGENT_ID` | Boundary in `server/integrations/voice.js` |
-| Outbound SMS (text-back, reminders, reviews) | Twilio Messaging | `TWILIO_*` / `TWILIO_MESSAGING_SERVICE_SID` | Boundary in `server/integrations/sms.js` |
+| Other outbound SMS (reminders, reviews) | Twilio Messaging | `TWILIO_*` / `TWILIO_MESSAGING_SERVICE_SID` | **Implemented** — `server/integrations/sms.js` |
 | Calendar booking + reminders | Google Calendar / MS Graph | `GOOGLE_*` / `MS_GRAPH_*` | Boundary in `server/integrations/calendar.js` |
 | CRM sync | Jobber / Housecall Pro / HubSpot / etc. | `CRM_PROVIDER`, `CRM_API_KEY`, `CRM_BASE_URL` | Boundary in `server/integrations/crm.js` |
 | LLM concierge upgrade (optional) | Anthropic Claude | `ANTHROPIC_API_KEY` | Demo uses the local rule engine; no key needed |
