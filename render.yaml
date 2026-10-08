@@ -1,0 +1,34 @@
+# Render Blueprint for Onyx AI (app lives in the onyx-ai/ subfolder).
+#
+# Model: ONE SERVICE = ONE CUSTOMER. To add a customer, either duplicate the
+# service block below with a new unique `name`, or create a separate Blueprint/
+# service from this same repo. Each instance keeps its own data.
+#
+# Free plan notes: the service sleeps after ~15 min of inactivity and wakes on
+# the next request (~30s cold start). Its disk is EPHEMERAL — fine for demos
+# (sample data reseeds automatically); see DEPLOY.md before storing real leads.
+services:
+  - type: web
+    name: onyx-ai-demo
+    runtime: node
+    plan: free
+    rootDir: onyx-ai
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      # Safety: simulation never places real calls/texts/bookings.
+      - key: ONYX_MODE
+        value: simulation
+      - key: NODE_VERSION
+        value: "22.11.0"
+      # Optional dashboard password gate — set BOTH in the Render dashboard to
+      # enable (leave unset to keep the dashboard open on an unguessable URL).
+      - key: DASHBOARD_USER
+        sync: false
+      - key: DASHBOARD_PASS
+        sync: false
+      # Set to this service's public URL after the first deploy (used to build
+      # provider webhook/callback URLs when you go live).
+      - key: PUBLIC_BASE_URL
+        sync: false
