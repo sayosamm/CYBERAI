@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onyx AI — Turn missed calls into booked appointments</title>
+<meta name="description" content="Onyx AI builds AI receptionists and messaging automation for home-service businesses — HVAC, plumbing, electrical, cleaning, and auto detailing. Capture every lead, book more jobs, and cut repetitive admin." />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/site.css" />
+</head>
+<body>
+
+<!-- ───────────────── NAV ───────────────── -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="Onyx AI home">
+      <img src="/assets/logo.svg" alt="" width="34" height="34" />
+      <span>Onyx<span class="brand-ai">AI</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#services">Services</a>
+      <a href="#how">How it works</a>
+      <a href="#industries">Industries</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="nav-dash" href="/dashboard">Live demo &rarr;</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="/dashboard">See the dashboard</a>
+      <a class="btn btn-primary btn-sm" href="#contact">Book a demo</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ───────────────── HERO ───────────────── -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy reveal">
+      <span class="eyebrow">AI automation for home-service businesses</span>
+      <h1>Turn missed calls into <span class="grad-text">booked appointments</span>.</h1>
+      <p class="lead">
+        Every missed call is a job going to your competitor. Onyx AI answers the phone,
+        texts back missed callers, books appointments, and handles the follow-ups —
+        so you capture more work without hiring more front-desk staff.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#contact">Book a demo</a>
+        <a class="btn btn-ghost" href="/dashboard">Explore the live dashboard</a>
+      </div>
+      <ul class="hero-points">
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Answers calls 24/7, books while you work</li>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Texts back every missed call automatically</li>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Hands off to a real person anytime</li>
+      </ul>
+    </div>
+
+    <!-- Interactive receptionist demo -->
+    <div class="hero-demo reveal" id="demo">
+      <div class="phone">
+        <div class="phone-top">
+          <span class="dot live"></span>
+          <div>
+            <strong>AI Receptionist</strong>
+            <small>Interactive demo &middot; try it</small>
+          </div>
+          <span class="tag sim">Simulated</span>
+        </div>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <form class="chat-input" id="chatForm" autocomplete="off">
+          <input id="chatText" type="text" placeholder="Type a message… e.g. “my AC isn’t cooling”" aria-label="Message the AI receptionist" />
+          <button class="btn btn-primary btn-sm" type="submit" aria-label="Send">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+          </button>
+        </form>
+        <div class="chat-chips" id="chatChips">
+          <button type="button" data-msg="What are your hours?">Hours?</button>
+          <button type="button" data-msg="My AC isn't cooling, can you come out?">AC not cooling</button>
+          <button type="button" data-msg="How much is a diagnostic?">Pricing</button>
+          <button type="button" data-msg="Can I talk to a person?">Talk to a human</button>
+        </div>
+      </div>
+      <p class="demo-note">Demo runs on a rule-based assistant over this business’s own FAQs and services. No calls or texts are sent.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── VALUE STRIP ───────────────── -->
+<section class="strip">
+  <div class="container strip-grid">
+    <div class="reveal"><h3>Never miss a lead</h3><p>Answer and text back around the clock — after hours, on jobs, during the rush.</p></div>
+    <div class="reveal"><h3>Book more jobs</h3><p>Qualify callers and put real appointments on the calendar automatically.</p></div>
+    <div class="reveal"><h3>Less admin</h3><p>Reminders, review requests, and follow-ups run themselves.</p></div>
+    <div class="reveal"><h3>Always a human option</h3><p>Urgent or complex? Onyx hands off to your team with full context.</p></div>
+  </div>
+</section>
+
+<!-- ───────────────── SERVICES ───────────────── -->
+<section id="services">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">What we build</span>
+      <h2>Automations that pay for themselves in booked work</h2>
+      <p>Start with one, or run the whole front office. Everything is built around your real services, hours, and the way you talk to customers.</p>
+    </div>
+    <div class="services-grid" id="servicesGrid"><!-- injected by JS, with no-JS fallback below --></div>
+    <noscript><p style="text-align:center">Enable JavaScript to see the full service list, or view the <a href="/dashboard">dashboard demo</a>.</p></noscript>
+  </div>
+</section>
+
+<!-- ───────────────── HOW IT WORKS ───────────────── -->
+<section id="how" class="how">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Live in about a week — no new hardware</h2>
+      <p>We configure Onyx around your business, connect it to the tools you already use, and keep a human in the loop.</p>
+    </div>
+    <ol class="steps">
+      <li class="reveal"><span class="step-n">1</span><h3>We learn your business</h3><p>Your services, pricing talk-tracks, hours, service area, and when to escalate to a person.</p></li>
+      <li class="reveal"><span class="step-n">2</span><h3>Connect your tools</h3><p>Phone number, text messaging, calendar, and CRM — through secure provider integrations.</p></li>
+      <li class="reveal"><span class="step-n">3</span><h3>Test in simulation</h3><p>You review real conversation flows and approve everything before a single live message goes out.</p></li>
+      <li class="reveal"><span class="step-n">4</span><h3>Go live &amp; refine</h3><p>Onyx starts answering and booking. You get a daily summary and can tune it anytime.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ───────────────── MISSED-CALL TEXT-BACK ───────────────── -->
+<section id="textback" class="textback">
+  <div class="container textback-grid">
+    <div class="reveal">
+      <span class="eyebrow">Missed-call text-back</span>
+      <h2>A missed call doesn’t have to be a lost job</h2>
+      <p>The moment a call goes unanswered, Onyx sends a friendly text to find out what the caller needs and help them book — with clear AI disclosure and a one-tap way to opt out.</p>
+      <ul class="check-list">
+        <li>Fires automatically within about a minute</li>
+        <li>Understands the request and offers times</li>
+        <li>Respects quiet hours and STOP opt-outs</li>
+        <li>Creates a lead your team can see instantly</li>
+      </ul>
+      <a class="btn btn-ghost" href="#contact">See it on your number</a>
+    </div>
+    <div class="reveal">
+      <div class="phone sms">
+        <div class="phone-top">
+          <span class="dot"></span>
+          <div><strong>Text from Northside H&amp;A</strong><small>Automated &middot; +1 (555) 010-0</small></div>
+          <span class="tag sim">Simulated</span>
+        </div>
+        <div class="chat sms-chat" id="smsChat" aria-live="polite"></div>
+        <button class="btn btn-ghost btn-sm replay" id="smsReplay" type="button">▸ Replay conversation</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── INDUSTRIES ───────────────── -->
+<section id="industries">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Built for the trades</span>
+      <h2>Industry-specific examples</h2>
+      <p>We start with home-service businesses and tune every flow to how your trade actually works.</p>
+    </div>
+    <div class="ind-grid" id="indGrid"></div>
+  </div>
+</section>
+
+<!-- ───────────────── PRICING ───────────────── -->
+<section id="pricing" class="pricing">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pricing</span>
+      <h2>Simple monthly plans</h2>
+      <p>
+        <span class="tag sample">Draft pricing</span>
+        Figures below are proposed starting points for discussion — not a quote. Final pricing depends on call volume and the tools we connect.
+      </p>
+    </div>
+    <div class="price-grid" id="priceGrid"></div>
+    <p class="price-foot reveal">
+      All plans include AI disclosure, STOP/opt-out handling, duplicate-message protection, and human handoff.
+      Usage over the included limits is billed per the overage rate shown. Third-party costs (phone, SMS carrier fees,
+      voice minutes) are passed through at provider rates. Cancel anytime; no long-term contract in the draft terms.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────── FAQ ───────────────── -->
+<section id="faq" class="faq">
+  <div class="container narrow">
+    <div class="section-head reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions, answered plainly</h2>
+    </div>
+    <div class="faq-list" id="faqList"></div>
+  </div>
+</section>
+
+<!-- ───────────────── CONTACT / BOOK A DEMO ───────────────── -->
+<section id="contact" class="contact">
+  <div class="container contact-grid">
+    <div class="reveal">
+      <span class="eyebrow">Book a demo</span>
+      <h2>See Onyx answer the phone for your business</h2>
+      <p>Tell us about your shop and we’ll set up a tailored walkthrough. We’ll show real conversation flows in simulation first — nothing goes live without your go-ahead.</p>
+      <ul class="check-list">
+        <li>15-minute tailored walkthrough</li>
+        <li>We map your services and escalation rules</li>
+        <li>No obligation, no live messages until you approve</li>
+      </ul>
+      <p class="contact-alt">Prefer to poke around first? <a href="/dashboard">Open the live demo dashboard →</a></p>
+    </div>
+    <div class="reveal">
+      <form class="contact-form card" id="contactForm" novalidate>
+        <div class="field">
+          <label for="cName">Name *</label>
+          <input id="cName" name="name" type="text" required maxlength="80" />
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="cEmail">Email *</label>
+            <input id="cEmail" name="email" type="email" required maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="cPhone">Phone</label>
+            <input id="cPhone" name="phone" type="tel" maxlength="20" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="cInterest">What are you most interested in?</label>
+          <select id="cInterest" name="interest">
+            <option>AI receptionist / voice agent</option>
+            <option>Missed-call text-back</option>
+            <option>Review requests</option>
+            <option>Appointment reminders</option>
+            <option>The full front office</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cMsg">Anything we should know?</label>
+          <textarea id="cMsg" name="message" rows="3" maxlength="500"></textarea>
+        </div>
+        <label class="consent">
+          <input id="cConsent" name="consent" type="checkbox" />
+          <span>I agree to be contacted about my request. If I provide a phone number, I consent to receive related text messages; message &amp; data rates may apply and I can reply STOP to opt out.</span>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Request my demo</button>
+        <p class="form-status" id="contactStatus" role="status"></p>
+        <p class="form-fine">This demo form stores your request in the local demo dashboard only. No real email or text is sent.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ───────────────── FOOTER ───────────────── -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="#top"><img src="/assets/logo.svg" alt="" width="30" height="30" /><span>Onyx<span class="brand-ai">AI</span></span></a>
+      <p class="foot-note">AI automation for home-service businesses. Capture every lead, book more jobs, do less admin.</p>
+    </div>
+    <div>
+      <h4>Product</h4>
+      <a href="#services">Services</a><a href="#pricing">Pricing</a><a href="/dashboard">Demo dashboard</a>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <a href="#how">How it works</a><a href="#faq">FAQ</a><a href="#contact">Book a demo</a>
+    </div>
+    <div class="foot-disclosure">
+      <h4>Responsible AI</h4>
+      <p>Onyx discloses that customers are talking to an AI assistant, always offers a human, honors STOP/opt-out requests, respects quiet hours, and prevents duplicate messages and bookings. We request honest reviews from all customers equally — we never fabricate reviews or filter out unhappy ones.</p>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© <span id="year"></span> Onyx AI (demo). Sample business data is fictional.</span>
+    <span class="tag sim">Simulation mode — no live calls, texts, or bookings</span>
+  </div>
+</footer>
+
+<script src="/js/site.js"></script>
+</body>
+</html>
