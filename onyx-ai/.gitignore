@@ -1,0 +1,19 @@
+# Secrets — never commit
+.env
+.env.local
+*.key
+*.pem
+service-account*.json
+
+# Runtime data store (seeded from code on first run)
+server/data/store.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

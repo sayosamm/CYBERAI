@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onyx AI — Demo Dashboard</title>
+<meta name="description" content="Interactive demo dashboard for the Onyx AI automation platform. Sample data; simulated actions." />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body class="dash">
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="30" height="30" /><span>Onyx<span class="brand-ai">AI</span></span></a>
+  <nav class="side-nav" id="sideNav" aria-label="Dashboard sections">
+    <button class="side-link active" data-view="overview"><span class="si">▦</span> Overview</button>
+    <button class="side-link" data-view="calls"><span class="si">☎</span> Calls</button>
+    <button class="side-link" data-view="leads"><span class="si">◎</span> Leads</button>
+    <button class="side-link" data-view="appointments"><span class="si">▤</span> Appointments</button>
+    <button class="side-link" data-view="reviews"><span class="si">★</span> Reviews</button>
+    <button class="side-link" data-view="automations"><span class="si">⚡</span> Automations</button>
+    <button class="side-link" data-view="settings"><span class="si">⚙</span> Settings</button>
+  </nav>
+  <div class="side-foot">
+    <a href="/" class="side-back">← Back to website</a>
+  </div>
+</aside>
+
+<div class="dash-main">
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+    <div class="topbar-title"><h1 id="viewTitle">Overview</h1><p id="viewSub">Sample data for a demo HVAC business</p></div>
+    <div class="topbar-right">
+      <span class="tag sim" id="modeBadge">Simulation</span>
+      <button class="btn btn-ghost btn-sm" id="resetBtn">↻ Reset demo</button>
+    </div>
+  </header>
+
+  <div class="banner" id="demoBanner">
+    <strong>Demo mode.</strong> All data below is <span class="tag sample">sample data</span> for a fictional business, and every action (texts, calls, bookings) is <span class="tag sim">simulated</span> — nothing real is sent. Use <em>Reset demo</em> to restore the samples.
+    <button class="banner-x" id="bannerX" aria-label="Dismiss">×</button>
+  </div>
+
+  <main class="views" id="views"><div class="loading">Loading…</div></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/js/dashboard.js"></script>
+</body>
+</html>
