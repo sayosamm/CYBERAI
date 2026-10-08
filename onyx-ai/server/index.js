@@ -101,9 +101,46 @@ function readBody(req) {
   });
 }
 
+// ── Optional password gate ───────────────────────────────────────────────────
+// Off unless DASHBOARD_USER + DASHBOARD_PASS are set. When set, it protects the
+// owner dashboard and its management API with HTTP Basic Auth, while the public
+// marketing site and its public endpoints (chat demo, contact form) stay open.
+// This is a lightweight single-password gate, not a full login system.
+const PUBLIC_API = new Set([
+  '/api/health',
+  '/api/contact',
+  '/api/demo/receptionist',
+  '/api/demo/missedcall',
+  '/api/sms/inbound',
+]);
+function needsAuth(urlPath) {
+  if (!process.env.DASHBOARD_USER || !process.env.DASHBOARD_PASS) return false;
+  if (urlPath === '/dashboard' || urlPath.startsWith('/dashboard')) return true;
+  if (urlPath.startsWith('/api/')) return !PUBLIC_API.has(urlPath);
+  return false;
+}
+function authOk(req) {
+  const header = req.headers['authorization'] || '';
+  if (!header.startsWith('Basic ')) return false;
+  let decoded = '';
+  try { decoded = Buffer.from(header.slice(6), 'base64').toString('utf8'); } catch { return false; }
+  const i = decoded.indexOf(':');
+  const user = decoded.slice(0, i);
+  const pass = decoded.slice(i + 1);
+  return user === process.env.DASHBOARD_USER && pass === process.env.DASHBOARD_PASS;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const urlPath = req.url.split('?')[0];
+    if (needsAuth(urlPath) && !authOk(req)) {
+      res.writeHead(401, {
+        'WWW-Authenticate': 'Basic realm="Onyx AI dashboard", charset="UTF-8"',
+        'Content-Type': 'text/plain',
+      });
+      res.end('Authentication required');
+      return;
+    }
     if (urlPath.startsWith('/api/')) {
       securityHeaders(res);
       res.setHeader('Cache-Control', 'no-store');

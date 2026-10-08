@@ -25,7 +25,7 @@ body.dash::before { opacity: 0.5; }
 .dash-main { display: flex; flex-direction: column; min-width: 0; }
 .topbar {
   position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 16px;
-  padding: 16px 28px; background: #0a0b10cc; backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft);
+  padding: 16px 28px; background: #090909cc; backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft);
 }
 .topbar-title h1 { font-size: 1.35rem; margin: 0; }
 .topbar-title p { font-size: 0.82rem; margin: 2px 0 0; color: var(--text-faint); }
@@ -46,7 +46,7 @@ body.dash::before { opacity: 0.5; }
 
 /* ───── STAT CARDS ───── */
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat { background: linear-gradient(180deg, var(--bg-elev), #0e1018); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 20px; }
+.stat { background: linear-gradient(180deg, var(--bg-elev), #0e0d0b); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 20px; }
 .stat .stat-label { font-size: 0.8rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
 .stat .stat-val { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 2px; }
 .stat .stat-val.grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -61,7 +61,7 @@ body.dash::before { opacity: 0.5; }
 .attn-list, .act-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .attn-item { display: flex; align-items: center; gap: 12px; padding: 11px 13px; background: var(--bg); border: 1px solid var(--line-soft); border-radius: var(--radius-sm); }
 .attn-item .kind { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-dim); flex: none; }
-.attn-item .kind.lead { color: var(--accent); border-color: #7c8cff44; } .attn-item .kind.appointment { color: var(--accent-2); border-color: #37e0c844; } .attn-item .kind.review { color: var(--warn); border-color: #ffb45444; }
+.attn-item .kind.lead { color: var(--accent); border-color: #e3b84b44; } .attn-item .kind.appointment { color: var(--accent-2); border-color: #f3d27a44; } .attn-item .kind.review { color: var(--warn); border-color: #ffb45444; }
 .attn-item .at-main { min-width: 0; } .attn-item .at-main strong { display: block; font-size: 0.9rem; } .attn-item .at-main small { color: var(--text-faint); font-size: 0.8rem; }
 .act-item { display: flex; gap: 11px; font-size: 0.87rem; color: var(--text-dim); padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
 .act-item:last-child { border-bottom: 0; }
@@ -85,7 +85,7 @@ td strong { font-weight: 600; }
 /* status pills */
 .pill { display: inline-block; font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
 .pill.new, .pill.pending { color: var(--warn); border-color: #ffb45440; background: #ffb4540d; }
-.pill.contacted, .pill.requested { color: var(--accent); border-color: #7c8cff40; background: #7c8cff0d; }
+.pill.contacted, .pill.requested { color: var(--accent); border-color: #e3b84b40; background: #e3b84b0d; }
 .pill.booked, .pill.confirmed, .pill.won, .pill.followed_up, .pill.completed { color: var(--ok); border-color: #45d48340; background: #45d4830d; }
 .pill.lost, .pill.cancelled, .pill.declined { color: var(--danger); border-color: #ff6b7a40; background: #ff6b7a0d; }
 .pill.value-high { color: var(--ok); } .pill.value-medium { color: var(--warn); } .pill.value-low { color: var(--text-faint); }
@@ -97,7 +97,7 @@ td strong { font-weight: 600; }
 
 /* handled-by badge */
 .by { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
-.by.ai { color: var(--accent-2); border-color: #37e0c840; } .by.human { color: var(--accent); border-color: #7c8cff40; } .by.missed { color: var(--warn); border-color: #ffb45440; }
+.by.ai { color: var(--accent-2); border-color: #f3d27a40; } .by.human { color: var(--accent); border-color: #e3b84b40; } .by.missed { color: var(--warn); border-color: #ffb45440; }
 
 /* ───── AUTOMATION CARDS ───── */
 .auto-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
