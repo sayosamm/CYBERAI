@@ -16,10 +16,24 @@
  */
 const twilio = require('../lib/twilio');
 
+// Where lead notifications go by default (override with NOTIFY_EMAIL_TO).
+// Resend's shared sender (onboarding@resend.dev) can email the account owner
+// with no domain setup — so once RESEND_API_KEY is set, emails just work.
+const DEFAULT_NOTIFY_EMAIL = 'sayosamuels@yahoo.com';
+const DEFAULT_FROM_EMAIL = 'onboarding@resend.dev';
+
+function emailTo() {
+  return process.env.NOTIFY_EMAIL_TO || DEFAULT_NOTIFY_EMAIL;
+}
+function emailFrom() {
+  return process.env.NOTIFY_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+}
+
 function channelsConfigured() {
   return {
     webhook: !!process.env.NOTIFY_WEBHOOK_URL,
-    email: !!(process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL_TO && process.env.NOTIFY_FROM_EMAIL),
+    // Email only needs the API key now — recipient/sender fall back to defaults.
+    email: !!process.env.RESEND_API_KEY,
     sms: !!(process.env.NOTIFY_SMS_TO && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
   };
 }
@@ -67,8 +81,8 @@ async function sendEmail(subject, text) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.NOTIFY_FROM_EMAIL,
-        to: String(process.env.NOTIFY_EMAIL_TO).split(',').map((s) => s.trim()),
+        from: emailFrom(),
+        to: emailTo().split(',').map((s) => s.trim()),
         subject,
         text,
       }),
