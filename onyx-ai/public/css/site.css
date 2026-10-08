@@ -122,6 +122,9 @@
 /* ───── PRICING ───── */
 .pricing { background: var(--bg-elev); border-top: 1px solid var(--line-soft); }
 .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+.price-grid.single { grid-template-columns: minmax(0, 480px); justify-content: center; }
+.price-grid.single .plan ul { grid-template-columns: 1fr 1fr; display: grid; gap: 11px 20px; }
+@media (max-width: 560px) { .price-grid.single .plan ul { grid-template-columns: 1fr; } }
 .plan { background: var(--bg); border: 1px solid var(--line-soft); border-radius: var(--radius-lg); padding: 30px 26px; display: flex; flex-direction: column; position: relative; }
 .plan.featured { border-color: var(--accent); box-shadow: var(--shadow-glow); }
 .plan .pop { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--grad); color: var(--accent-ink); font-size: 0.72rem; font-weight: 700; padding: 5px 14px; border-radius: 999px; letter-spacing: 0.04em; }

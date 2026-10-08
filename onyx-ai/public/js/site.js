@@ -100,29 +100,40 @@
     ig.appendChild(c); io.observe(c);
   });
 
-  /* ---- Pricing (DRAFT) ---- */
+  /* ---- Pricing (single full package) ---- */
   const plans = [
-    { name: 'Starter', for: 'Solo operators & small shops', price: '$299', pop: false, setup: 'One-time setup: $499',
-      feats: ['AI missed-call text-back', 'Website AI concierge', 'Review requests + 1 follow-up', 'Lead capture to dashboard', 'Human handoff + STOP/opt-out'],
-      limits: ['Up to 500 conversations/mo', 'Overage: $0.25 / extra conversation', 'SMS/voice carrier fees passed through'] },
-    { name: 'Growth', for: 'Busy home-service teams', price: '$699', pop: true, setup: 'One-time setup: $900',
-      feats: ['Everything in Starter', 'AI voice receptionist (inbound calls)', 'Appointment booking + reminders', 'Estimate follow-up', 'After-hours urgent routing', 'Daily owner summary'],
-      limits: ['Up to 1,500 conversations/mo', 'Up to 1,000 voice minutes/mo', 'Overage: $0.18 / conv, $0.12 / min'] },
-    { name: 'Pro', for: 'Multi-crew & multi-location', price: '$1,299', pop: false, setup: 'One-time setup: from $1,500',
-      feats: ['Everything in Growth', 'Lead reactivation campaigns', 'Cancellation waitlist fill', 'Multilingual intake', 'CRM two-way sync', 'Priority support & tuning'],
-      limits: ['Up to 4,000 conversations/mo', 'Up to 3,000 voice minutes/mo', 'Overage: $0.14 / conv, $0.10 / min'] },
+    { name: 'Full Package', for: 'Everything your front office needs — one simple plan', price: '$299', pop: true,
+      setup: 'One-time setup & onboarding: $4,000',
+      feats: [
+        'AI receptionist / voice agent (inbound calls)',
+        'Missed-call text-back',
+        'Appointment booking, reminders & rescheduling',
+        'Google review requests (+ gentle follow-up)',
+        'Estimate follow-up',
+        'Lead reactivation (opted-in customers)',
+        'Website AI concierge',
+        'After-hours urgent routing & human handoff',
+        'Daily owner summary of calls, bookings & leads',
+        'AI disclosure + STOP/opt-out built in',
+      ],
+      limits: [
+        'Generous fair-use conversation & voice-minute allotment',
+        'Overage billed at cost + a small margin (quoted up front)',
+        'Third-party fees (phone number, SMS carrier, voice minutes) passed through at provider rates',
+      ] },
   ];
   const pg = $('#priceGrid');
+  if (plans.length === 1) pg.classList.add('single');
   plans.forEach((p) => {
     const c = el('div', 'plan reveal' + (p.pop ? ' featured' : ''));
     c.innerHTML =
-      (p.pop ? '<span class="pop">Most popular</span>' : '') +
+      (p.pop ? '<span class="pop">Everything included</span>' : '') +
       `<h3>${p.name}</h3><div class="plan-for">${esc(p.for)}</div>` +
-      `<div class="price">${p.price}<small>/mo <span class="tag sample">draft</span></small></div>` +
+      `<div class="price">${p.price}<small>/mo</small></div>` +
       `<div class="setup">${esc(p.setup)}</div>` +
       '<ul>' + p.feats.map((f) => `<li>${esc(f)}</li>`).join('') +
       p.limits.map((l) => `<li class="limit">${esc(l)}</li>`).join('') + '</ul>' +
-      `<a class="btn ${p.pop ? 'btn-primary' : 'btn-ghost'} btn-block" href="#contact">Book a demo</a>`;
+      `<a class="btn btn-primary btn-block" href="#contact">Book a demo</a>`;
     pg.appendChild(c); io.observe(c);
   });
 
