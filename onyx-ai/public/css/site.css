@@ -6,11 +6,11 @@
 .nav {
   position: sticky; top: 0; z-index: 50;
   backdrop-filter: blur(14px);
-  background: #0a0b10b3;
+  background: #090909b3;
   border-bottom: 1px solid transparent;
   transition: border-color 0.3s, background 0.3s;
 }
-.nav.scrolled { border-bottom-color: var(--line-soft); background: #0a0b10e0; }
+.nav.scrolled { border-bottom-color: var(--line-soft); background: #090909e0; }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.02em; }
 .brand:hover { color: var(--text); }
@@ -34,7 +34,7 @@
 
 /* Phone / chat demo */
 .phone {
-  background: linear-gradient(180deg, #14172400, #0d0f19), var(--bg-elev);
+  background: linear-gradient(180deg, #13121000, #0c0b09), var(--bg-elev);
   border: 1px solid var(--line); border-radius: 26px; padding: 14px;
   box-shadow: var(--shadow-glow); max-width: 420px; margin-left: auto;
 }
@@ -74,7 +74,7 @@
 /* ───── SERVICES ───── */
 .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .svc {
-  background: linear-gradient(180deg, var(--bg-elev), #0e1018); border: 1px solid var(--line-soft);
+  background: linear-gradient(180deg, var(--bg-elev), #0e0d0b); border: 1px solid var(--line-soft);
   border-radius: var(--radius); padding: 24px; transition: transform 0.3s var(--ease), border-color 0.3s;
   position: relative; overflow: hidden;
 }
