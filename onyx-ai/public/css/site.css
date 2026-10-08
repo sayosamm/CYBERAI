@@ -109,6 +109,15 @@
 .ind h3 { font-size: 1.08rem; margin: 10px 0 6px; }
 .ind p { font-size: 0.88rem; margin: 0 0 12px; }
 .ind .ind-ex { font-size: 0.84rem; color: var(--accent-2); border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.ind.ind-match { border-color: var(--accent); box-shadow: var(--shadow-glow); position: relative; }
+.ind .ind-badge { position: absolute; top: 14px; right: 14px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent-ink); background: var(--grad); padding: 3px 9px; border-radius: 999px; }
+
+/* Per-prospect "Prepared for" ribbon */
+.prospect-ribbon {
+  background: var(--grad); color: var(--accent-ink); text-align: center;
+  font-size: 0.86rem; font-weight: 600; padding: 8px 16px; position: relative; z-index: 60;
+}
+.prospect-ribbon strong { font-weight: 800; }
 
 /* ───── PRICING ───── */
 .pricing { background: var(--bg-elev); border-top: 1px solid var(--line-soft); }

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onyx AI — Demo Builder</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/base.css" />
+<style>
+  .wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: var(--text); }
+  .brand-ai { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: var(--text-dim); margin-bottom: 26px; }
+  .card { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .fg { display: grid; gap: 6px; margin-bottom: 16px; }
+  .fg label { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+  .fg input, .fg select { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; color: var(--text); font: inherit; font-size: 0.95rem; }
+  .fg input:focus, .fg select:focus { outline: none; border-color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .out { margin-top: 6px; }
+  .out h3 { font-size: 0.95rem; margin: 0 0 8px; }
+  .linkbox { display: flex; gap: 8px; }
+  .linkbox input { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; color: var(--accent-2); font: inherit; font-size: 0.86rem; font-family: var(--mono); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 600; cursor: pointer; padding: 11px 18px; border-radius: 999px; border: 1px solid transparent; transition: 0.2s; white-space: nowrap; text-decoration: none; }
+  .btn-primary { background: var(--grad); color: var(--accent-ink); }
+  .btn-ghost { background: var(--bg-elev-2); border-color: var(--line); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); }
+  .btn:active { transform: translateY(1px); }
+  .snippet { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; color: var(--text-dim); font: inherit; font-size: 0.9rem; line-height: 1.5; resize: vertical; min-height: 110px; }
+  .muted { color: var(--text-faint); font-size: 0.84rem; }
+  .copied { color: var(--ok); font-size: 0.82rem; margin-left: 8px; }
+  .divider { height: 1px; background: var(--line-soft); margin: 20px 0; }
+  a.back { color: var(--text-faint); font-size: 0.86rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="30" height="30" /><span>Onyx<span class="brand-ai">AI</span></span></a>
+    <a class="back" href="/">← Site</a>
+  </div>
+
+  <h1 style="font-size:1.9rem;margin:0 0 8px">Demo Builder</h1>
+  <p class="lead">Enter a prospect's details to generate a <strong>personalized demo link</strong> and a ready-to-send outreach message. Internal tool — share the generated link, not this page.</p>
+
+  <div class="card">
+    <div class="fg">
+      <label for="biz">Business name *</label>
+      <input id="biz" placeholder="e.g. Acme Plumbing" maxlength="80" autocomplete="off" />
+    </div>
+    <div class="row">
+      <div class="fg">
+        <label for="trade">Trade</label>
+        <select id="trade">
+          <option value="">General</option>
+          <option value="hvac">HVAC</option>
+          <option value="plumbing">Plumbing</option>
+          <option value="electrical">Electrical</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="auto detailing">Auto detailing</option>
+          <option value="other">Other trades</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label for="city">City (optional)</label>
+        <input id="city" placeholder="e.g. Austin, TX" maxlength="60" autocomplete="off" />
+      </div>
+    </div>
+    <div class="fg">
+      <label for="yourname">Your name (for the message, optional)</label>
+      <input id="yourname" placeholder="e.g. Sayo" maxlength="40" autocomplete="off" />
+    </div>
+  </div>
+
+  <div class="card out">
+    <h3>1. Personalized demo link <span id="copiedLink" class="copied" hidden>✓ copied</span></h3>
+    <div class="linkbox">
+      <input id="demoLink" readonly />
+      <button class="btn btn-primary" id="copyLink" type="button">Copy</button>
+      <a class="btn btn-ghost" id="openLink" href="#" target="_blank" rel="noopener">Open</a>
+    </div>
+    <p class="muted" style="margin-top:10px">Send this to the prospect. The site greets them by name and highlights their trade.</p>
+
+    <div class="divider"></div>
+
+    <h3>2. Outreach message <span id="copiedMsg" class="copied" hidden>✓ copied</span></h3>
+    <textarea class="snippet" id="snippet" readonly></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="copyMsg" type="button">Copy message</button>
+      <select class="btn btn-ghost" id="tone" style="padding:11px 14px">
+        <option value="text">Tone: Text / DM</option>
+        <option value="email">Tone: Email</option>
+      </select>
+    </div>
+  </div>
+
+  <p class="muted">Tip: bookmark this page. You can also hand-type links like <code>/?biz=Acme%20Plumbing&amp;trade=plumbing</code>.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  function enc(s) { return encodeURIComponent(s); }
+
+  function build() {
+    var biz = $('#biz').value.trim();
+    var trade = $('#trade').value;
+    var city = $('#city').value.trim();
+    var you = $('#yourname').value.trim();
+    var tone = $('#tone').value;
+
+    var qs = [];
+    if (biz) qs.push('biz=' + enc(biz));
+    if (trade) qs.push('trade=' + enc(trade));
+    if (city) qs.push('city=' + enc(city));
+    var link = location.origin + '/' + (qs.length ? '?' + qs.join('&') : '');
+    $('#demoLink').value = link;
+    $('#openLink').href = link;
+
+    var name = biz || 'your business';
+    var firstName = you ? you : 'me';
+    var msg;
+    if (tone === 'email') {
+      msg = 'Subject: A quick idea for ' + name + '\n\n' +
+        'Hi there,\n\n' +
+        'I put together a quick demo of an AI assistant that answers calls, texts back missed callers, and books appointments for ' + name + ' — so you stop losing jobs to missed calls.\n\n' +
+        'Here’s a live demo made for you: ' + link + '\n\n' +
+        'Takes 30 seconds to try. Open to a quick chat this week?\n\n' +
+        'Thanks,\n' + (you || '');
+    } else {
+      msg = 'Hey — I built a quick AI demo for ' + name + ' that answers calls + texts back missed callers so you don’t lose jobs. Made it just for you, takes 30 secs to try: ' + link + ' — worth a quick chat?';
+    }
+    $('#snippet').value = msg;
+  }
+
+  function copy(el, flag) {
+    el.select(); el.setSelectionRange(0, 99999);
+    try { document.execCommand('copy'); } catch (e) {}
+    if (navigator.clipboard) { navigator.clipboard.writeText(el.value).catch(function(){}); }
+    var f = $(flag); f.hidden = false; setTimeout(function () { f.hidden = true; }, 1800);
+  }
+
+  ['biz', 'trade', 'city', 'yourname', 'tone'].forEach(function (id) {
+    $('#' + id).addEventListener('input', build);
+    $('#' + id).addEventListener('change', build);
+  });
+  $('#copyLink').addEventListener('click', function () { copy($('#demoLink'), '#copiedLink'); });
+  $('#copyMsg').addEventListener('click', function () { copy($('#snippet'), '#copiedMsg'); });
+  build();
+})();
+</script>
+</body>
+</html>
