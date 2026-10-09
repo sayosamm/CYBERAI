@@ -277,7 +277,7 @@
       const data = await res.json();
       if (!res.ok) return fail(data.error ? 'Error: ' + data.error.replace(/_/g, ' ') : 'Something went wrong.');
       status.className = 'form-status ok';
-      status.textContent = '✓ Thanks! Your request was captured — view it in the demo dashboard.';
+      status.textContent = '✓ Thanks! We got your request and will reach out shortly.';
       form.reset();
     } catch { fail('Couldn’t reach the demo server.'); }
     function fail(msg) { status.className = 'form-status err'; status.textContent = msg; }
