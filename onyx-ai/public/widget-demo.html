@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Widget preview — a client's website</title>
+<meta name="robots" content="noindex" />
+<style>
+  body{margin:0;font:16px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;color:#1a2233;background:#fff}
+  .bar{background:#0f2b46;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px}
+  .bar b{font-size:1.2rem}
+  .hero{background:linear-gradient(120deg,#123a5e,#1e73be);color:#fff;padding:70px 24px;text-align:center}
+  .hero h1{font-size:2.2rem;margin:0 0 10px}
+  .hero p{opacity:.9;max-width:560px;margin:0 auto}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px}
+  .note{background:#eef4fb;border:1px solid #d4e3f5;border-radius:12px;padding:16px 18px;color:#355}
+  h2{color:#123a5e}
+</style>
+</head>
+<body>
+<div class="bar"><b>🔧 Sample Plumbing Co.</b><span style="margin-left:auto;opacity:.8">(555) 010-0100</span></div>
+<div class="hero">
+  <h1>Fast, friendly plumbing — done right.</h1>
+  <p>Serving the metro area for over 20 years. Drains, water heaters, repairs & installs.</p>
+</div>
+<div class="wrap">
+  <div class="note"><strong>This is a mock website</strong> standing in for a client's existing site. The Onyx AI chat bubble in the bottom-right corner was added with a <em>single line of code</em> — nothing else on this page changed.</div>
+  <h2>Our services</h2>
+  <p>Leak detection, drain cleaning, water heater repair & replacement, fixture installs, and 24/7 emergency service.</p>
+  <h2>Why choose us</h2>
+  <p>Licensed, insured, upfront pricing, and we clean up after ourselves. Try the chat in the corner — ask it anything.</p>
+</div>
+
+<!-- ↓↓↓ The ONE line a client adds to their site ↓↓↓ -->
+<script src="/widget.js" data-name="Sample Plumbing Co." data-accent="#1e73be" data-launch="Chat with us"></script>
+</body>
+</html>

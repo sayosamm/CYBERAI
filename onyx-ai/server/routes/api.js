@@ -484,7 +484,9 @@ async function handle(req, res, ctx) {
       const email = clampStr(body.email, 120).trim();
       const phone = normalizePhone(body.phone);
       if (!name) return send(res, 400, { error: 'name_required' });
-      if (!isValidEmail(email) || !email) return send(res, 400, { error: 'valid_email_required' });
+      if (email && !isValidEmail(email)) return send(res, 400, { error: 'invalid_email' });
+      // Accept an email OR a phone (the chat widget collects a callback number).
+      if (!email && !phone) return send(res, 400, { error: 'email_or_phone_required' });
       if (body.consent !== true && body.consent !== 'true') {
         return send(res, 400, { error: 'consent_required' });
       }
