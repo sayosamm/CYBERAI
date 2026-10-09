@@ -400,6 +400,11 @@
   $('#sideNav').addEventListener('click', (e) => { const b = e.target.closest('.side-link'); if (b) { render(b.dataset.view); $('#sidebar').classList.remove('open'); } });
   $('#menuBtn').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
   $('#bannerX').addEventListener('click', () => $('#demoBanner').classList.add('hidden'));
+  const logoutBtn = $('#logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+    try { await fetch('/api/logout', { method: 'POST' }); } catch { /* ignore */ }
+    window.location.href = '/login';
+  });
   $('#resetBtn').addEventListener('click', async () => {
     if (!confirm('Reset all demo data back to the sample state?')) return;
     try { await api('/demo/reset', 'POST', {}); toast('Demo data reset'); render(currentView()); }

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Onyx AI — Sign in</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/base.css" />
+<style>
+  body { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+  .login { width: 100%; max-width: 380px; }
+  .login .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.3rem; color: var(--text); margin-bottom: 6px; }
+  .brand-ai { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .login h1 { font-size: 1.4rem; margin: 10px 0 4px; }
+  .login p.sub { color: var(--text-faint); font-size: 0.9rem; margin: 0 0 22px; }
+  .card { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow-glow); }
+  .fg { display: grid; gap: 7px; margin-bottom: 16px; }
+  .fg label { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+  .fg input { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text); font: inherit; font-size: 0.98rem; }
+  .fg input:focus { outline: none; border-color: var(--accent); }
+  .btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; font: inherit; font-weight: 700; cursor: pointer; padding: 13px; border-radius: 999px; border: none; background: var(--grad); color: var(--accent-ink); font-size: 1rem; transition: transform 0.15s; }
+  .btn:hover { transform: translateY(-1px); } .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+  .err { color: var(--danger); font-size: 0.88rem; min-height: 1.2em; margin: 4px 2px 0; text-align: center; }
+  .foot { text-align: center; margin-top: 18px; font-size: 0.82rem; color: var(--text-faint); }
+  .foot a { color: var(--accent-2); }
+</style>
+</head>
+<body>
+<div class="login">
+  <div class="brand"><img src="/assets/logo.svg" alt="" width="34" height="34" /><span>Onyx<span class="brand-ai">AI</span></span></div>
+  <h1>Sign in</h1>
+  <p class="sub">Access your business dashboard.</p>
+  <form class="card" id="loginForm" autocomplete="on">
+    <div class="fg">
+      <label for="user">Username</label>
+      <input id="user" name="user" type="text" autocomplete="username" autofocus required />
+    </div>
+    <div class="fg">
+      <label for="pass">Password</label>
+      <input id="pass" name="pass" type="password" autocomplete="current-password" required />
+    </div>
+    <button class="btn" type="submit" id="loginBtn">Sign in</button>
+    <p class="err" id="err" role="alert"></p>
+  </form>
+  <p class="foot"><a href="/">← Back to site</a></p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var form = document.getElementById('loginForm');
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('err');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    err.textContent = '';
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: document.getElementById('user').value, pass: document.getElementById('pass').value }),
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d.ok) { window.location.href = '/dashboard'; }
+        else { err.textContent = 'Wrong username or password.'; btn.disabled = false; btn.textContent = 'Sign in'; }
+      })
+      .catch(function () { err.textContent = 'Couldn’t reach the server. Try again.'; btn.disabled = false; btn.textContent = 'Sign in'; });
+  });
+})();
+</script>
+</body>
+</html>

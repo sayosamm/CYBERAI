@@ -60,12 +60,18 @@ provider. (Buying one domain and giving each client a subdomain is cheapest.)
 
 `PORT` is set by Render automatically — don't set it yourself.
 
-### Protecting the dashboard without a login
-You said no login — that's fine. But once an instance holds real customer phone
-numbers, don't leave the dashboard fully public. Set **`DASHBOARD_USER`** and
-**`DASHBOARD_PASS`** in Render; the browser then asks for that one shared
-password before showing `/dashboard`. The public marketing site and the chat
-demo stay open. Leave them unset to rely on the unguessable URL instead.
+### Dashboard login (give each client their own)
+Once an instance holds real customer data, lock the dashboard. Set
+**`DASHBOARD_USER`** and **`DASHBOARD_PASS`** in Render (pick a username +
+password per client). Visitors to `/dashboard` then get a branded **`/login`**
+page and a secure session cookie — no browser popup. The public marketing site,
+chat widget, and provider webhooks stay open. Hand the client their link +
+username + password; a "Log out" button is in the dashboard sidebar.
+
+Leave both unset to keep the dashboard open (fine for a throwaway demo). For a
+real client, always set them. (Optional: set `SESSION_SECRET` to any random
+string; otherwise it's derived from the password, so changing the password logs
+everyone out.)
 
 ---
 

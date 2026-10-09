@@ -6,6 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { loadEnv, mode } = require('./lib/env');
 const api = require('./routes/api');
 
@@ -41,6 +42,7 @@ function sendStatic(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') urlPath = '/index.html';
   if (urlPath === '/dashboard') urlPath = '/dashboard.html';
+  if (urlPath === '/login') urlPath = '/login.html';
   if (urlPath === '/share') urlPath = '/share.html';
 
   // Prevent path traversal.
@@ -102,48 +104,104 @@ function readBody(req) {
   });
 }
 
-// ── Optional password gate ───────────────────────────────────────────────────
-// Off unless DASHBOARD_USER + DASHBOARD_PASS are set. When set, it protects the
-// owner dashboard and its management API with HTTP Basic Auth, while the public
-// marketing site and its public endpoints (chat demo, contact form) stay open.
-// This is a lightweight single-password gate, not a full login system.
+// ── Dashboard login (optional) ───────────────────────────────────────────────
+// Off unless DASHBOARD_USER + DASHBOARD_PASS are set. When set, the dashboard and
+// its management API require a login; visitors get a branded /login page and a
+// signed session cookie. The public marketing site, chat demo, contact form, and
+// provider webhooks always stay open.
 const PUBLIC_API = new Set([
   '/api/health',
   '/api/contact',
   '/api/demo/receptionist',
   '/api/demo/missedcall',
   '/api/sms/inbound',
+  '/api/login',
+  '/api/logout',
 ]);
+function gateOn() {
+  return !!(process.env.DASHBOARD_USER && process.env.DASHBOARD_PASS);
+}
 function needsAuth(urlPath) {
-  if (!process.env.DASHBOARD_USER || !process.env.DASHBOARD_PASS) return false;
+  if (!gateOn()) return false;
   if (urlPath === '/dashboard' || urlPath.startsWith('/dashboard')) return true;
-  // Provider webhooks (Twilio, etc.) can't send Basic Auth — always public.
-  if (urlPath.startsWith('/api/webhooks/')) return false;
+  if (urlPath.startsWith('/api/webhooks/')) return false; // provider webhooks
   if (urlPath.startsWith('/api/')) return !PUBLIC_API.has(urlPath);
   return false;
 }
-function authOk(req) {
-  const header = req.headers['authorization'] || '';
-  if (!header.startsWith('Basic ')) return false;
-  let decoded = '';
-  try { decoded = Buffer.from(header.slice(6), 'base64').toString('utf8'); } catch { return false; }
-  const i = decoded.indexOf(':');
-  const user = decoded.slice(0, i);
-  const pass = decoded.slice(i + 1);
-  return user === process.env.DASHBOARD_USER && pass === process.env.DASHBOARD_PASS;
+function sessionSecret() {
+  return process.env.SESSION_SECRET || `${process.env.DASHBOARD_USER || ''}:${process.env.DASHBOARD_PASS || ''}:onyx-session-v1`;
+}
+function makeToken(user) {
+  const payload = Buffer.from(JSON.stringify({ u: user, exp: Date.now() + 7 * 86400000 })).toString('base64url');
+  const sig = crypto.createHmac('sha256', sessionSecret()).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+function verifyToken(tok) {
+  if (!tok) return false;
+  const i = tok.indexOf('.');
+  if (i < 0) return false;
+  const payload = tok.slice(0, i);
+  const sig = tok.slice(i + 1);
+  const expect = crypto.createHmac('sha256', sessionSecret()).update(payload).digest('base64url');
+  if (sig.length !== expect.length) return false;
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expect))) return false;
+  try {
+    const p = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return p.exp > Date.now() ? p.u : false;
+  } catch { return false; }
+}
+function parseCookies(req) {
+  const out = {};
+  (req.headers.cookie || '').split(';').forEach((part) => {
+    const idx = part.indexOf('=');
+    if (idx > 0) out[part.slice(0, idx).trim()] = part.slice(idx + 1).trim();
+  });
+  return out;
+}
+function isAuthed(req) {
+  return !!verifyToken(parseCookies(req).onyx_session);
+}
+function cookieHeader(value, maxAge) {
+  const secure = String(process.env.PUBLIC_BASE_URL || '').startsWith('https') ? '; Secure' : '';
+  return `onyx_session=${value}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`;
 }
 
 const server = http.createServer(async (req, res) => {
   try {
     const urlPath = req.url.split('?')[0];
-    if (needsAuth(urlPath) && !authOk(req)) {
-      res.writeHead(401, {
-        'WWW-Authenticate': 'Basic realm="Onyx AI dashboard", charset="UTF-8"',
-        'Content-Type': 'text/plain',
-      });
-      res.end('Authentication required');
+
+    // ---- login / logout ----
+    if (urlPath === '/api/login' && req.method === 'POST') {
+      securityHeaders(res);
+      res.setHeader('Cache-Control', 'no-store');
+      const body = await readBody(req);
+      if (gateOn() && body.user === process.env.DASHBOARD_USER && body.pass === process.env.DASHBOARD_PASS) {
+        res.writeHead(200, { 'Set-Cookie': cookieHeader(makeToken(body.user), 7 * 86400), 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+      }
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'invalid_credentials' }));
       return;
     }
+    if (urlPath === '/api/logout' && req.method === 'POST') {
+      res.writeHead(200, { 'Set-Cookie': cookieHeader('', 0), 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+
+    // ---- auth gate ----
+    if (needsAuth(urlPath) && !isAuthed(req)) {
+      if (urlPath.startsWith('/api/')) {
+        res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ error: 'login_required' }));
+        return;
+      }
+      res.writeHead(302, { Location: '/login' });
+      res.end();
+      return;
+    }
+
     if (urlPath.startsWith('/api/')) {
       securityHeaders(res);
       res.setHeader('Cache-Control', 'no-store');
