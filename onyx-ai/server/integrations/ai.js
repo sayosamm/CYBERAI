@@ -31,10 +31,14 @@ function buildSystem(business) {
   const services = (b.services || []).map((s) => `- ${s.name}${s.priceNote ? ` (${s.priceNote})` : ''}`).join('\n') || '- (not specified)';
   const faqs = (b.faqs || []).map((f) => `Q: ${f.q}\nA: ${f.a}`).join('\n') || '(none)';
   const escalation = (b.escalation || []).map((e) => `${e.name} (${e.role})`).join(', ') || 'the owner';
+  const persona = (b.persona || 'Warm, professional, and concise.').trim();
+  const knowledge = (b.knowledge || '').trim();
 
-  return `You are the friendly AI receptionist for "${b.name || 'this business'}", a ${b.industry || 'home-service'} company${b.timezone ? ` (timezone ${b.timezone})` : ''}.
+  return `You are the AI receptionist for "${b.name || 'this business'}", a ${b.industry || 'home-service'} company${b.timezone ? ` (timezone ${b.timezone})` : ''}.
 
-Your job: answer questions, qualify leads, and help customers book — the way a great front-desk person would. You can answer general questions too (about the trade, what to expect, how scheduling works), but keep everything truthful and grounded in the info below.
+PERSONALITY: ${persona}
+
+Your job: answer questions, qualify leads, and help customers book — like the best front-desk person they've ever dealt with. Be genuinely helpful and move the conversation toward booking a visit, without being pushy.
 
 BUSINESS HOURS: ${hours}
 
@@ -43,17 +47,21 @@ ${services}
 
 FAQS:
 ${faqs}
-
+${knowledge ? `\nADDITIONAL KNOWLEDGE (prices, policies, service area, financing, etc. — use this to answer):\n${knowledge}\n` : ''}
 ESCALATION CONTACTS (for urgent/after-hours or when a human is needed): ${escalation}
 
 RULES:
 - You already disclosed you're an AI at the start; don't repeat the disclosure every message.
-- Be concise and warm — 1–3 short sentences, like a text message. No markdown, no bullet dumps.
-- Only state prices, policies, or specifics that appear above. If you don't know, say you'll have the team confirm — never invent numbers, guarantees, or details.
-- If the caller wants to book, collect their name, phone, the service, and a preferred time, then confirm you've passed it to the team.
-- If it sounds urgent (no heat/no cool, gas smell, flooding, electrical hazard) or the caller asks for a person, offer to connect them to ${escalation} right away. For safety hazards (gas, carbon monoxide), tell them to leave and call 911.
-- Never promise specific revenue, outcomes, or anything the business can't deliver. No fake reviews.
-- Stay on topic as this business's receptionist; politely redirect unrelated requests.`;
+- Be concise and warm — 1–3 short sentences, like a text. No markdown, no bullet lists.
+- Answer from the info above. If a specific price/policy isn't given, say you'll have the team confirm — never invent numbers, guarantees, or details.
+- Gently steer toward booking: when someone has a need, offer to get them on the schedule and ask for their name and best phone number.
+- If it sounds urgent (no heat/no cool, gas smell, flooding, electrical hazard) or they ask for a person, offer to connect them to ${escalation} now. For safety hazards (gas, carbon monoxide), tell them to leave and call 911.
+- If asked in another language, reply in that language.
+- Never promise specific revenue or outcomes. No fake reviews. Stay on topic as this business's receptionist.
+
+LEAD CAPTURE (important): As soon as you have the customer's NAME and a PHONE NUMBER (or email), append this on its very last line — the customer will NOT see it, it is stripped before sending:
+[[LEAD name="..." phone="..." email="..." service="..." summary="one short line about what they need"]]
+Include it only once you actually have at least a name AND a phone or email. Put real values (leave a field empty if unknown). Never mention this tag or show it to the customer.`;
 }
 
 /**
@@ -102,7 +110,8 @@ async function chat(business, history, userText) {
       .join('')
       .trim();
     if (!text) return { ok: false, reason: 'empty_response' };
-    return { ok: true, reply: text };
+    const { reply, lead } = extractLead(text);
+    return { ok: true, reply, lead };
   } catch (err) {
     return { ok: false, reason: err.name === 'AbortError' ? 'timeout' : err.message };
   } finally {
@@ -110,4 +119,24 @@ async function chat(business, history, userText) {
   }
 }
 
-module.exports = { enabled, chat };
+/**
+ * Pull the hidden [[LEAD ...]] tag out of a reply. Returns the cleaned reply
+ * (tag removed) and a lead object when enough info is present (name + a phone
+ * or email).
+ */
+function extractLead(text) {
+  const m = text.match(/\[\[LEAD\b([^\]]*)\]\]/i);
+  if (!m) return { reply: text.trim(), lead: null };
+  const reply = text.replace(m[0], '').trim();
+  const attrs = {};
+  const re = /(\w+)\s*=\s*"([^"]*)"/g;
+  let a;
+  while ((a = re.exec(m[1])) !== null) attrs[a[1].toLowerCase()] = a[2].trim();
+  const name = attrs.name || '';
+  const phone = attrs.phone || '';
+  const email = attrs.email || '';
+  if (!name || (!phone && !email)) return { reply, lead: null };
+  return { reply, lead: { name, phone, email, service: attrs.service || '', summary: attrs.summary || '' } };
+}
+
+module.exports = { enabled, chat, extractLead };

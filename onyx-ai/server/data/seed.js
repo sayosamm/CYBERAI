@@ -37,6 +37,9 @@ const business = {
     saturday: { open: '09:00', close: '13:00' },
     sunday: null, // closed
   },
+  // AI assistant personality + free-form knowledge the chatbot answers from.
+  persona: 'Warm, upbeat, and concise — like a friendly front-desk pro who gets things booked.',
+  knowledge: 'Service area: greater Northside metro, ~30 miles. We service all major brands. Payment: cash, card, and financing available on new installs. Diagnostic fee is waived if you approve the repair. We offer a 100% satisfaction guarantee on workmanship.',
   services: [
     { id: 'svc_tuneup', name: 'AC / Furnace Tune-up', durationMin: 60, priceNote: 'from $129' },
     { id: 'svc_repair', name: 'Diagnostic & Repair', durationMin: 90, priceNote: '$99 diagnostic, applied to repair' },

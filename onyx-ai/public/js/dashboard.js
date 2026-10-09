@@ -349,6 +349,12 @@
       <div class="form-card"><h3>Services</h3><div id="svcList">${svcRows}</div><button class="add-row" id="addSvc">+ Add service</button></div>
       <div class="form-card"><h3>FAQs</h3><div id="faqList2">${faqRows}</div><button class="add-row" id="addFaq">+ Add FAQ</button></div>
       <div class="form-card"><h3>Escalation contacts</h3><p class="muted" style="margin-top:-8px">Who the AI hands off to for urgent or after-hours calls.</p><div id="escList">${escRows}</div><button class="add-row" id="addEsc">+ Add contact</button></div>
+      <div class="form-card">
+        <h3>AI assistant</h3>
+        <p class="muted" style="margin-top:-8px">Shape how the chatbot talks and what it knows. Changes apply instantly.</p>
+        <div class="fg"><label>Personality / tone</label><input id="setPersona" maxlength="300" placeholder="e.g. Warm, upbeat, and concise" value="${esc(b.persona || '')}" /></div>
+        <div class="fg"><label>Knowledge — prices, policies, service area, financing, anything the AI should know</label><textarea id="setKnowledge" rows="6" maxlength="6000" placeholder="Paste anything the assistant should answer from…">${esc(b.knowledge || '')}</textarea></div>
+      </div>
       <div class="save-bar"><button class="btn btn-primary" id="saveSettings">Save settings</button><span class="muted" id="saveMsg"></span></div>`;
 
     // hours closed toggle
@@ -375,8 +381,8 @@
       const faqs = $$('#faqList2 .repeat-row').map((r) => ({ q: r.querySelector('.f-q').value.trim(), a: r.querySelector('.f-a').value.trim() })).filter((f) => f.q && f.a);
       const escalation = $$('#escList .repeat-row').map((r) => ({ name: r.querySelector('.e-name').value.trim(), phone: r.querySelector('.e-phone').value.trim(), role: 'staff' })).filter((e) => e.name && e.phone);
       try {
-        await api('/settings', 'PUT', { name: $('#setName').value.trim(), hours, services, faqs, escalation });
-        $('#saveMsg').textContent = '✓ Saved — the AI demo now uses these settings.';
+        await api('/settings', 'PUT', { name: $('#setName').value.trim(), persona: $('#setPersona').value.trim(), knowledge: $('#setKnowledge').value.trim(), hours, services, faqs, escalation });
+        $('#saveMsg').textContent = '✓ Saved — the AI now uses these settings.';
         toast('Settings saved');
       } catch (err) { toast('Save failed: ' + err.message, 'err'); }
     });
