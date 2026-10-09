@@ -48,6 +48,31 @@ function logActivity(db, type, text) {
   db.activity = db.activity.slice(0, 60);
 }
 
+/** Create a lead captured during a chat (deduped by phone/email within 24h). */
+async function captureChatLead(db, info, source) {
+  const phone = normalizePhone(info.phone);
+  const email = clampStr(info.email, 120).trim();
+  const name = clampStr(info.name, 80).trim();
+  if (!name || (!phone && !email)) return null;
+  const recent = db.leads.find(
+    (l) => ((phone && l.phone === phone) || (email && l.email && l.email.toLowerCase() === email.toLowerCase())) &&
+      Date.now() - new Date(l.createdAt) < 24 * 3600 * 1000
+  );
+  if (recent) return recent;
+  const lead = {
+    id: id('lead'), name, phone, email,
+    source: source || 'website_chat', service: clampStr(info.service || 'Website chat', 80),
+    status: 'new', value: 'high', note: clampStr(info.summary || '', 500), smsConsent: !!phone,
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), sample: false,
+  };
+  db.leads.unshift(lead);
+  if (phone) consent.setConsent(db, phone, 'opted_in', 'provided in chat');
+  logActivity(db, 'lead', `Lead captured in chat: ${name}.`);
+  store.persist();
+  await announceLead(db, lead);
+  return lead;
+}
+
 function overview(db) {
   const today = new Date().toDateString();
   const isToday = (iso) => new Date(iso).toDateString() === today;
@@ -261,6 +286,8 @@ async function handle(req, res, ctx) {
       if (method === 'PUT') {
         const b = db.business;
         if (typeof body.name === 'string') b.name = clampStr(body.name, 80);
+        if (typeof body.persona === 'string') b.persona = clampStr(body.persona, 300);
+        if (typeof body.knowledge === 'string') b.knowledge = clampStr(body.knowledge, 6000);
         if (body.hours && typeof body.hours === 'object') b.hours = body.hours;
         if (Array.isArray(body.faqs)) {
           b.faqs = body.faqs
@@ -326,8 +353,14 @@ async function handle(req, res, ctx) {
         const history = (state && state.history) || [];
         const out = await ai.chat(business, history, text);
         if (out.ok) {
+          let captured = false;
+          // Don't capture leads on a personalized prospect demo (?biz=...).
+          if (!bizOverride && out.lead) {
+            const lead = await captureChatLead(db, out.lead, 'website_chat');
+            captured = !!lead;
+          }
           const newHistory = [...history, { role: 'user', content: text }, { role: 'assistant', content: out.reply }].slice(-16);
-          return send(res, 200, { reply: out.reply, state: { mode: 'ai', history: newHistory }, source: 'ai', simulated: true });
+          return send(res, 200, { reply: out.reply, state: { mode: 'ai', history: newHistory }, source: 'ai', captured, simulated: true });
         }
         // Fall back to the rule engine for this reply, keep the AI conversation going.
         const rule = assistant.reply(business, null, text);
@@ -337,6 +370,13 @@ async function handle(req, res, ctx) {
 
       // Rule-based mode (no API key configured).
       const result = assistant.reply(business, state, text);
+      if (!bizOverride && result.booked && result.state && result.state.lead && result.state.lead.name) {
+        await captureChatLead(db, {
+          name: result.state.lead.name, phone: result.state.lead.phone,
+          service: result.state.lead.service, summary: `Booked ${result.state.lead.slot || ''} via website chat`,
+        }, 'website_chat');
+        result.captured = true;
+      }
       return send(res, 200, { ...result, simulated: true });
     }
 
