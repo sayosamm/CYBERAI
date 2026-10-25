@@ -153,3 +153,23 @@ td strong { font-weight: 600; }
   .topbar { padding: 14px 18px; }
 }
 @media (max-width: 520px) { .stat-grid { grid-template-columns: 1fr; } .fg-row, .hours-row { grid-template-columns: 1fr; } }
+
+/* ───── RESULTS: chart + funnel ───── */
+.chart-wrap { position: relative; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .cgrid { stroke: var(--line-soft); stroke-width: 1; }
+.chart .cylab { fill: var(--text-faint); font-size: 10px; text-anchor: end; }
+.chart .cxlab { fill: var(--text-faint); font-size: 10px; }
+.chart .cline { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .cdot { fill: var(--accent); }
+.chart .chit { fill: transparent; cursor: crosshair; }
+.chart .chit:hover { fill: #e3b84b14; }
+.ctip { position: absolute; pointer-events: none; background: var(--bg-elev-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.82rem; color: var(--text); white-space: nowrap; box-shadow: var(--shadow); z-index: 5; transform: translateY(-100%); }
+.ctip strong { color: var(--accent-2); }
+
+.funnel { display: flex; flex-direction: column; gap: 16px; padding-top: 4px; }
+.fn-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px; }
+.fn-head strong { color: var(--text); font-size: 1.05rem; }
+.fn-track { height: 12px; background: var(--bg); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; }
+.fn-bar { height: 100%; border-radius: 999px; transition: width 0.6s var(--ease); }
+.fn-pct { font-size: 0.76rem; color: var(--text-faint); margin-top: 4px; }

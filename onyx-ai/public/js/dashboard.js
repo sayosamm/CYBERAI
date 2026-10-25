@@ -41,6 +41,7 @@
     overview: ['Overview', 'A live snapshot of calls, leads, and automations'],
     calls: ['Calls', 'Inbound calls and AI-generated summaries'],
     leads: ['Leads', 'Captured leads and follow-up status'],
+    results: ['Results', 'What Onyx caught for you — last 30 days'],
     appointments: ['Appointments', 'Bookings, confirmations, and rescheduling'],
     reviews: ['Reviews', 'Post-service review requests (honest feedback, all customers)'],
     automations: ['Automations', 'What’s running, and the latest activity'],
@@ -85,6 +86,92 @@
       </div>`;
     $$('[data-goto]', views).forEach((b) => b.addEventListener('click', () => render(b.dataset.goto)));
   };
+
+  /* ===== RESULTS (30-day snapshot + chart) ===== */
+  RENDERERS.results = async function () {
+    const r = await api('/results');
+    const t = r.totals;
+    const answered = t.calls - t.missed;
+    const stat = (label, val, sub) => `<div class="stat"><div class="stat-label">${label}</div><div class="stat-val grad">${val}</div><div class="stat-sub">${sub}</div></div>`;
+    views.innerHTML = `
+      <div class="toolbar"><span class="muted">Last 30 days.</span> <span class="tag sample">sample data</span><div class="spacer"></div></div>
+      <div class="stat-grid">
+        ${stat('Calls handled', t.calls, `${answered} answered · ${t.missed} missed`)}
+        ${stat('Missed calls rescued', t.missed, 'texted back automatically')}
+        ${stat('Leads captured', t.leads, 'that could have been lost')}
+        ${stat('Appointments booked', t.booked, `from ${t.leads} leads`)}
+      </div>
+      <div class="cols-2">
+        <div class="panel"><h3>Leads captured per day <span class="count">last 30 days</span></h3>${trendChart(r.days)}</div>
+        <div class="panel"><h3>How it adds up</h3>${funnel([
+          ['Calls handled', t.calls],
+          ['Missed → texted back', t.missed],
+          ['Leads captured', t.leads],
+          ['Appointments booked', t.booked],
+        ])}</div>
+      </div>
+      <p class="muted" style="margin-top:14px">Sample figures for the demo. On a live account this fills in with your real calls, texts, and bookings.</p>`;
+    wireTrendHover();
+  };
+
+  /* Inline SVG area+line chart — single gold series (change-over-time). */
+  function trendChart(days) {
+    const W = 560, H = 230, PAD = { l: 30, r: 14, t: 14, b: 26 };
+    const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
+    const vals = days.map((d) => d.leads);
+    const max = Math.max(5, Math.ceil(Math.max(...vals) / 5) * 5);
+    const n = days.length;
+    const x = (i) => PAD.l + (n <= 1 ? 0 : (i * iw) / (n - 1));
+    const y = (v) => PAD.t + ih - (v / max) * ih;
+    const linePts = days.map((d, i) => `${x(i).toFixed(1)},${y(d.leads).toFixed(1)}`).join(' ');
+    const areaPts = `${PAD.l},${(PAD.t + ih).toFixed(1)} ${linePts} ${(PAD.l + iw).toFixed(1)},${(PAD.t + ih).toFixed(1)}`;
+    // Gridlines + y labels (recessive).
+    let grid = '';
+    for (let g = 0; g <= 4; g++) {
+      const gv = (max / 4) * g;
+      const gy = y(gv).toFixed(1);
+      grid += `<line x1="${PAD.l}" y1="${gy}" x2="${PAD.l + iw}" y2="${gy}" class="cgrid"/><text x="${PAD.l - 6}" y="${(+gy + 3).toFixed(1)}" class="cylab">${gv}</text>`;
+    }
+    // X labels: first, middle, last date.
+    const fmt = (iso) => { const d = new Date(iso + 'T00:00:00'); return (d.getMonth() + 1) + '/' + d.getDate(); };
+    const xl = [0, Math.floor(n / 2), n - 1].map((i) => `<text x="${x(i).toFixed(1)}" y="${H - 8}" class="cxlab" text-anchor="middle">${fmt(days[i].date)}</text>`).join('');
+    // Invisible hit rects for hover.
+    const hit = days.map((d, i) => `<rect class="chit" x="${(x(i) - iw / n / 2).toFixed(1)}" y="${PAD.t}" width="${(iw / n).toFixed(1)}" height="${ih}" data-date="${fmt(d.date)}" data-val="${d.leads}" />`).join('');
+    const dots = days.map((d, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(d.leads).toFixed(1)}" r="2.5" class="cdot"/>`).join('');
+    return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" class="chart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Leads captured per day over the last 30 days">
+      <defs><linearGradient id="cfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e3b84b" stop-opacity="0.35"/><stop offset="1" stop-color="#e3b84b" stop-opacity="0.02"/></linearGradient></defs>
+      ${grid}
+      <polygon points="${areaPts}" fill="url(#cfill)"/>
+      <polyline points="${linePts}" class="cline"/>
+      ${dots}${xl}${hit}
+    </svg><div class="ctip" id="ctip" hidden></div></div>`;
+  }
+  function wireTrendHover() {
+    const tip = $('#ctip'); if (!tip) return;
+    $$('.chit', views).forEach((rect) => {
+      rect.addEventListener('mouseenter', (e) => {
+        tip.hidden = false;
+        tip.innerHTML = `<strong>${e.target.dataset.val}</strong> leads · ${e.target.dataset.date}`;
+      });
+      rect.addEventListener('mousemove', (e) => {
+        const wrap = tip.parentElement.getBoundingClientRect();
+        tip.style.left = (e.clientX - wrap.left + 10) + 'px';
+        tip.style.top = (e.clientY - wrap.top - 10) + 'px';
+      });
+      rect.addEventListener('mouseleave', () => { tip.hidden = true; });
+    });
+  }
+  /* Funnel: horizontal bars, single gold hue, each labeled with count + % of top. */
+  function funnel(rows) {
+    const top = Math.max(1, rows[0][1]);
+    return '<div class="funnel">' + rows.map(([label, val], i) => {
+      const pct = Math.round((val / top) * 100);
+      const shade = ['#f3d27a', '#e3b84b', '#d4a738', '#c9972f'][i] || '#c9972f';
+      return `<div class="fn-row"><div class="fn-head"><span>${esc(label)}</span><strong>${val}</strong></div>
+        <div class="fn-track"><div class="fn-bar" style="width:${Math.max(6, pct)}%;background:${shade}"></div></div>
+        <div class="fn-pct">${pct}% of calls</div></div>`;
+    }).join('') + '</div>';
+  }
 
   /* ===== CALLS ===== */
   RENDERERS.calls = async function () {
