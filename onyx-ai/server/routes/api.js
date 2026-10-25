@@ -73,6 +73,41 @@ async function captureChatLead(db, info, source) {
   return lead;
 }
 
+/**
+ * 30-day "Results" snapshot. Deterministic sample data (stable across reloads),
+ * clearly labeled sample. On a live client instance this would reflect real
+ * logged activity.
+ */
+function results() {
+  // Deterministic 0..1 from a date (so the chart doesn't change every refresh).
+  function seeded(d) {
+    const n = Number(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`);
+    const x = Math.sin(n) * 10000;
+    return x - Math.floor(x);
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = [];
+  const totals = { calls: 0, missed: 0, leads: 0, booked: 0 };
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const s = seeded(d);
+    const dow = d.getDay();
+    const weekday = dow >= 1 && dow <= 5 ? 1 : 0.55;
+    const calls = Math.max(2, Math.round((8 + s * 12) * weekday));
+    const missed = Math.round(calls * (0.3 + s * 0.15));
+    const leads = Math.max(1, Math.round((missed * 0.6 + calls * 0.15) * (0.8 + s * 0.4)));
+    const booked = Math.round(leads * (0.45 + s * 0.2));
+    days.push({ date: d.toISOString().slice(0, 10), calls, missed, leads, booked });
+    totals.calls += calls;
+    totals.missed += missed;
+    totals.leads += leads;
+    totals.booked += booked;
+  }
+  return { sample: true, days, totals };
+}
+
 function overview(db) {
   const today = new Date().toDateString();
   const isToday = (iso) => new Date(iso).toDateString() === today;
@@ -116,6 +151,7 @@ async function handle(req, res, ctx) {
     // ---- health / overview ----
     if (resource === 'health') return send(res, 200, { ok: true, mode: mode() });
     if (resource === 'overview') return send(res, 200, overview(db));
+    if (resource === 'results' && method === 'GET') return send(res, 200, results());
 
     // ---- calls ----
     if (resource === 'calls' && method === 'GET') {
