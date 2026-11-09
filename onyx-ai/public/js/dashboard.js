@@ -42,6 +42,7 @@
     calls: ['Calls', 'Inbound calls and AI-generated summaries'],
     leads: ['Leads', 'Captured leads and follow-up status'],
     results: ['Results', 'What Onyx caught for you — last 30 days'],
+    prospects: ['Prospecting', 'Find local businesses to sell to + draft outreach'],
     appointments: ['Appointments', 'Bookings, confirmations, and rescheduling'],
     reviews: ['Reviews', 'Post-service review requests (honest feedback, all customers)'],
     automations: ['Automations', 'What’s running, and the latest activity'],
@@ -171,6 +172,93 @@
         <div class="fn-track"><div class="fn-bar" style="width:${Math.max(6, pct)}%;background:${shade}"></div></div>
         <div class="fn-pct">${pct}% of calls</div></div>`;
     }).join('') + '</div>';
+  }
+
+  /* ===== PROSPECTING (lead finder + AI outreach drafter) ===== */
+  const PROS_STATUSES = ['new', 'emailed', 'called', 'replied', 'booked', 'not_interested'];
+  RENDERERS.prospects = async function () {
+    const { prospects, hasKey } = await api('/prospects');
+    views.innerHTML = `
+      <div class="form-card" style="max-width:none">
+        <h3>Find local businesses to sell to</h3>
+        <p class="muted" style="margin-top:-8px">Search a trade + city. ${hasKey ? 'Live results via Google Places.' : 'Showing <span class="tag sample">sample</span> results — add a Google Places API key to pull real businesses.'}</p>
+        <div class="fg-row">
+          <div class="fg"><label>Trade</label><input id="prTrade" placeholder="e.g. electricians" value="electricians" /></div>
+          <div class="fg"><label>City</label><input id="prCity" placeholder="e.g. Austin, TX" value="Austin, TX" /></div>
+        </div>
+        <div class="save-bar"><button class="btn btn-primary" id="prSearch">Find leads</button><span class="muted" id="prMsg"></span></div>
+      </div>
+      <div class="toolbar"><input class="search" id="prFilter" placeholder="Search your list…" /><div class="spacer"></div><span class="muted" id="prCount"></span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Business</th><th>Contact</th><th>Rating</th><th>Status</th><th>Outreach</th></tr></thead>
+        <tbody id="prBody">${prospects.map(prRow).join('') || emptyRow(5)}</tbody>
+      </table></div>
+      <div id="prDraft"></div>`;
+    $('#prCount').textContent = prospects.length + ' prospects';
+    wireSearch('#prFilter', '#prBody');
+    $('#prSearch').addEventListener('click', doSearch);
+    wireProsBody();
+  };
+  function prRow(p) {
+    const site = p.website ? `<a href="${esc(p.website)}" target="_blank" rel="noopener" class="muted">site ↗</a>` : '';
+    return `<tr data-id="${p.id}">
+      <td><strong>${esc(p.name)}</strong>${sampleTag(p)}<div class="muted">${esc(p.address || '')}</div></td>
+      <td>${esc(p.phone || '—')}${site ? '<div>' + site + '</div>' : ''}</td>
+      <td>${p.rating != null ? '★ ' + p.rating : '<span class="muted">—</span>'}</td>
+      <td><select class="inline-select pr-status" aria-label="Status">${PROS_STATUSES.map((s) => `<option value="${s}"${s === p.status ? ' selected' : ''}>${s.replace('_', ' ')}</option>`).join('')}</select></td>
+      <td><button class="btn btn-ghost btn-sm pr-draft">✍ Draft</button></td>
+    </tr>`;
+  }
+  async function doSearch() {
+    const trade = $('#prTrade').value.trim(), city = $('#prCity').value.trim();
+    if (!trade || !city) return toast('Enter a trade and city', 'err');
+    const msg = $('#prMsg'); msg.textContent = 'Searching…';
+    try {
+      const r = await api('/prospects/search', 'POST', { trade, city });
+      msg.textContent = `✓ ${r.added} new added${r.sample ? ' (sample)' : ''}.`;
+      $('#prBody').innerHTML = r.prospects.map(prRow).join('') || emptyRow(5);
+      $('#prCount').textContent = r.prospects.length + ' prospects';
+      toast(`${r.added} prospects added`);
+    } catch (err) { msg.textContent = ''; toast('Search failed: ' + err.message, 'err'); }
+  }
+  function wireProsBody() {
+    const body = $('#prBody');
+    body.addEventListener('change', async (e) => {
+      const sel = e.target.closest('.pr-status'); if (!sel) return;
+      const idp = sel.closest('tr').dataset.id;
+      try { await api('/prospects/' + idp, 'PATCH', { status: sel.value }); toast('Status → ' + sel.value.replace('_', ' ')); }
+      catch (err) { toast('Update failed: ' + err.message, 'err'); }
+    });
+    body.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.pr-draft'); if (!btn) return;
+      const tr = btn.closest('tr'); const idp = tr.dataset.id;
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        const d = await api('/prospects/' + idp + '/draft', 'POST', {});
+        showDraft(d);
+      } catch (err) { toast('Draft failed: ' + err.message, 'err'); }
+      btn.disabled = false; btn.textContent = '✍ Draft';
+    });
+  }
+  function showDraft(d) {
+    const host = $('#prDraft');
+    host.innerHTML = `
+      <div class="form-card" style="max-width:none">
+        <h3>AI-drafted outreach ${d.source === 'ai' ? '' : '<span class="tag sample">template</span>'}</h3>
+        <div class="fg"><label>Email subject</label><input id="dSub" value="${esc(d.email.subject)}" readonly /></div>
+        <div class="fg"><label>Email body</label><textarea id="dBody" rows="7" readonly>${esc(d.email.body)}</textarea></div>
+        <div class="save-bar"><button class="btn btn-ghost btn-sm" data-copy="dBody">Copy email</button><button class="btn btn-ghost btn-sm" data-copy="dSub">Copy subject</button></div>
+        <div class="fg" style="margin-top:14px"><label>Text / DM</label><textarea id="dText" rows="3" readonly>${esc(d.text)}</textarea></div>
+        <div class="save-bar"><button class="btn btn-ghost btn-sm" data-copy="dText">Copy text</button>${d.demoLink ? `<a class="btn btn-ghost btn-sm" href="${esc(d.demoLink)}" target="_blank" rel="noopener">Open demo link ↗</a>` : ''}</div>
+        <p class="muted" style="margin-top:8px">Review, tweak, and send it yourself. Keeps your emails personal and out of spam.</p>
+      </div>`;
+    host.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    $$('[data-copy]', host).forEach((b) => b.addEventListener('click', () => {
+      const el2 = $('#' + b.dataset.copy); el2.select(); el2.setSelectionRange(0, 99999);
+      try { document.execCommand('copy'); } catch (e) {}
+      if (navigator.clipboard) navigator.clipboard.writeText(el2.value).catch(() => {});
+      toast('Copied');
+    }));
   }
 
   /* ===== CALLS ===== */

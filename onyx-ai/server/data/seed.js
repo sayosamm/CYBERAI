@@ -303,6 +303,8 @@ function buildSeed() {
     sentKeys: {},
     // Per-caller SMS assistant state (keyed by phone) for multi-turn text-back.
     convos: {},
+    // Outbound prospecting list (businesses YOU are selling Onyx to).
+    prospects: [],
   };
 }
 

@@ -14,6 +14,7 @@ const sms = require('../integrations/sms');
 const telephony = require('../integrations/telephony');
 const calendar = require('../integrations/calendar');
 const notify = require('../integrations/notify');
+const places = require('../integrations/places');
 const ai = require('../integrations/ai');
 const twilioLib = require('../lib/twilio');
 const { id, normalizePhone, isValidEmail, clampStr } = require('../lib/util');
@@ -156,6 +157,58 @@ async function handle(req, res, ctx) {
     // ---- calls ----
     if (resource === 'calls' && method === 'GET') {
       return send(res, 200, { calls: db.calls });
+    }
+
+    // ---- prospecting (outbound lead finder + AI outreach drafter) ----
+    if (resource === 'prospects') {
+      db.prospects = db.prospects || [];
+      if (method === 'GET' && !idParam) return send(res, 200, { prospects: db.prospects, hasKey: places.hasKey() });
+
+      if (method === 'POST' && idParam === 'search') {
+        const trade = clampStr(body.trade, 60).trim();
+        const city = clampStr(body.city, 80).trim();
+        if (!trade || !city) return send(res, 400, { error: 'trade_and_city_required' });
+        const out = await places.searchLeads(trade, city);
+        let added = 0;
+        for (const r of out.results) {
+          const dup = db.prospects.find((p) => p.name.toLowerCase() === r.name.toLowerCase() && p.phone === r.phone);
+          if (dup) continue;
+          db.prospects.unshift({
+            id: id('pros'), name: r.name, phone: r.phone, website: r.website, rating: r.rating,
+            address: r.address, trade, city, status: 'new', note: '',
+            createdAt: new Date().toISOString(), sample: !!r.sample,
+          });
+          added += 1;
+        }
+        logActivity(db, 'sales', `Prospect search: "${trade} in ${city}" — ${added} new added.`);
+        store.persist();
+        return send(res, 200, { prospects: db.prospects, added, live: !!out.live, sample: !out.live, liveError: out.liveError || null });
+      }
+
+      if (method === 'PATCH' && idParam) {
+        const p = db.prospects.find((x) => x.id === idParam);
+        if (!p) return send(res, 404, { error: 'prospect_not_found' });
+        const allowed = ['new', 'emailed', 'called', 'replied', 'booked', 'not_interested'];
+        if (body.status) { if (!allowed.includes(body.status)) return send(res, 400, { error: 'invalid_status' }); p.status = body.status; }
+        if (typeof body.note === 'string') p.note = clampStr(body.note, 500);
+        store.persist();
+        return send(res, 200, { prospect: p });
+      }
+
+      if (method === 'POST' && idParam && action === 'draft') {
+        const p = db.prospects.find((x) => x.id === idParam);
+        if (!p) return send(res, 404, { error: 'prospect_not_found' });
+        const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+        const demoLink = base ? `${base}/?biz=${encodeURIComponent(p.name)}&trade=${encodeURIComponent(p.trade || '')}` : '';
+        const draft = await ai.draftOutreach({ name: p.name, trade: p.trade }, { demoLink });
+        return send(res, 200, { ...draft, demoLink });
+      }
+
+      if (method === 'DELETE' && idParam) {
+        const i = db.prospects.findIndex((x) => x.id === idParam);
+        if (i >= 0) { db.prospects.splice(i, 1); store.persist(); }
+        return send(res, 200, { ok: true });
+      }
     }
 
     // ---- leads ----

@@ -139,4 +139,55 @@ function extractLead(text) {
   return { reply, lead: { name, phone, email, service: attrs.service || '', summary: attrs.summary || '' } };
 }
 
-module.exports = { enabled, chat, extractLead };
+/**
+ * Draft cold outreach (email + text) for a prospect business you want to sell
+ * Onyx to. Uses Claude when configured, else a solid template. Returns
+ * { ok, email:{subject,body}, text, source }.
+ */
+async function draftOutreach(prospect, opts = {}) {
+  const biz = (prospect && prospect.name) || 'your business';
+  const trade = (prospect && prospect.trade) || 'home-service';
+  const you = opts.yourName || '';
+  const demoLink = opts.demoLink || '';
+
+  // Template fallback (no key) — honest, non-pushy, benefit-led.
+  function template() {
+    const link = demoLink ? `\n\nHere's a 30-second demo I made for you: ${demoLink}` : '';
+    const sign = you ? `\n\n– ${you}` : '';
+    return {
+      email: {
+        subject: `quick idea for ${biz}`,
+        body: `Hi there,\n\nQuick one — when ${biz} misses a call (on a job, after hours), that customer usually just calls the next company. I set up an AI that answers your calls and instantly texts back missed callers to book them, 24/7.${link}\n\nIf it's useful, I build the whole thing for you. Open to a 10-minute call this week?${sign}`,
+      },
+      text: `Hey — I build AI receptionists for ${trade} businesses. Made a quick one for ${biz} that answers calls + texts back missed callers so you don't lose jobs.${demoLink ? ' 30-sec demo: ' + demoLink : ''} Worth a quick chat?`,
+      source: 'template',
+    };
+  }
+
+  if (!enabled()) return { ok: true, ...template() };
+
+  const system = `You write short, friendly B2B cold outreach for an AI-receptionist agency ("Onyx AI") selling to local home-service businesses. Rules: lead with the pain (missed calls = lost jobs), plain-spoken, no hype, no fake stats, no guarantees. Keep the email to ~90 words; the text to ~2 sentences. Return ONLY JSON: {"subject":"...","email":"...","text":"..."}. ${demoLink ? `Include this demo link naturally in both: ${demoLink}.` : ''}${you ? ` Sign the email from ${you}.` : ''}`;
+  const user = `Prospect business: "${biz}" (${trade}). Write the outreach.`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL, max_tokens: 500, system, messages: [{ role: 'user', content: user }] }),
+      signal: controller.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    const text = (data.content || []).filter((b) => b && b.type === 'text').map((b) => b.text).join('').trim();
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) return { ok: true, ...template() };
+    const j = JSON.parse(m[0]);
+    return { ok: true, email: { subject: j.subject || `quick idea for ${biz}`, body: j.email || '' }, text: j.text || '', source: 'ai' };
+  } catch {
+    return { ok: true, ...template() };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+module.exports = { enabled, chat, extractLead, draftOutreach };
